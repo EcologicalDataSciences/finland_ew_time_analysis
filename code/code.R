@@ -342,3 +342,99 @@ ggplot(richness_ad, aes(x=year, y=richness_ad))+
   geom_boxplot(width=0.2, col="brown", fill=NA)+
   geom_jitter(width=0.1, alpha=0.5)+
   theme_bw()
+
+#### 2.6. Beta (and Gamma) diversity ####
+
+# using additive Whittaker partitioning
+
+betadiv <- data %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Undetermined") %>%
+  separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% 
+  filter(tot_obs>0) %>% 
+  group_by(year) %>% 
+  mutate(gamma=length(unique(taxon))) %>% 
+  group_by(year, region) %>% 
+  mutate(alpha_3=length(unique(taxon))) %>% 
+  group_by(year, region, site_name) %>% 
+  mutate(alpha_2=length(unique(taxon))) %>% 
+  group_by(year, region, site_name, replicate) %>% 
+  mutate(alpha_1=length(unique(taxon))) %>% 
+  mutate(beta_3=gamma-alpha_3, 
+         beta_2=alpha_3-alpha_2,
+         beta_1=alpha_2-alpha_1) %>% 
+  right_join(data %>% separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% select(region, site_name, replicate, year)) %>% 
+  select(-taxon) %>% distinct() %>% 
+  replace(is.na(.), 0) %>% 
+  mutate(gamma=ifelse(year=="t0", 7, 6)) #i have to think about  a better way 
+  
+ggplot(betadiv %>% 
+         select(alpha_1, alpha_2, alpha_3, gamma) %>%  
+         pivot_longer(col=c(alpha_1, alpha_2, alpha_3, gamma)),
+       aes(y=value, x=name, fill=year))+
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) +
+  theme_bw()
+
+ggplot(betadiv %>% 
+         select(beta_1, beta_2, beta_3) %>%  
+         pivot_longer(col=c(beta_1, beta_2, beta_3)),
+       aes(y=value, x=name, fill=year))+
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
+
+# using multiplicative Whittaker partitioning
+
+betadiv2 <- data %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Undetermined") %>%
+  separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% 
+  filter(tot_obs>0) %>% 
+  group_by(year) %>% 
+  mutate(gamma=length(unique(taxon))) %>% 
+  group_by(year, region) %>% 
+  mutate(alpha_3=length(unique(taxon))) %>% 
+  group_by(year, region, site_name) %>% 
+  mutate(alpha_2=length(unique(taxon))) %>% 
+  group_by(year, region, site_name, replicate) %>% 
+  mutate(alpha_1=length(unique(taxon))) %>% 
+  mutate(beta_3=gamma/alpha_3, 
+         beta_2=alpha_3/alpha_2,
+         beta_1=alpha_2/alpha_1) %>% 
+  right_join(data %>% separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% select(region, site_name, replicate, year)) %>% 
+  select(-taxon) %>% distinct() %>% 
+  replace(is.na(.), 0) %>% 
+  mutate(gamma=ifelse(year=="t0", 7, 6))
+
+ggplot(betadiv2 %>% 
+         select(beta_1, beta_2, beta_3) %>%  
+         pivot_longer(col=c(beta_1, beta_2, beta_3)),
+       aes(y=value, x=name, fill=year))+
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
+
+#### 2.7 Temporal beta ####
+
+library(betapart)
+
+# abundance based
+
+temp_beta <- sites %>% select(site_name) %>% distinct() %>% mutate(temp_beta=NA) %>% mutate(temp_beta_sor=NA)%>% mutate(temp_beta_sim=NA)%>% mutate(temp_beta_sne=NA)
+
+for (i in 1:nrow(temp_beta)){
+  mat=rbind(mat2015[i,], mat2025[i,])
+  temp_beta_i <- beta.pair.abund(mat)
+  temp_beta[i, 2] <- temp_beta_i$beta.bray
+}
+
+# occurence based
+
+occ2015<-ifelse(mat2015>0,1,0)
+occ2025<-ifelse(mat2025>0,1,0)
+
+for (i in 1:nrow(temp_beta)){
+  mat=rbind(occ2015[i,], occ2025[i,])
+  temp_beta_i <- beta.pair(mat, index.family = "sorensen")
+  temp_beta[i, 3] <- temp_beta_i$beta.sor
+  temp_beta[i, 4] <- temp_beta_i$beta.sim
+  temp_beta[i, 5] <- temp_beta_i$beta.sne
+}
+
+
