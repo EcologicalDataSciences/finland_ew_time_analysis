@@ -279,6 +279,53 @@ b <-tpaired.krandtest(mat2015a, mat2025a, nperm=99)
 b
 p.adjust(b$t.test$p.param, method="holm") # p values corrected for multiple testing
 
+# figure
+
+taxon_dif_ad <- data_adult_only %>% 
+  group_by(taxon,year) %>% 
+  summarise(tot_obs_sp= sum(tot_obs)) %>% 
+  pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
+  summarise(diff=(t1-t0)/(t1+t0))
+
+plot1ad <- ggplot(taxon_dif_ad,
+                aes(x=diff, y=reorder(taxon, diff), fill=sign(diff)))+
+  geom_col()+
+  theme(legend.position = "none", 
+        axis.title.y=element_blank()) 
+
+appearance_disappearance_ad <- data_adult_only %>%
+  group_by(taxon,year, site_name) %>% 
+  summarise(tot_obs_sp= sum(tot_obs)) %>% 
+  mutate(occurence=ifelse(tot_obs_sp > 0, 1, 0))  %>% 
+  select(-tot_obs_sp)  %>% 
+  pivot_wider(names_from=year, values_from = occurence, values_fill = 0)  %>% 
+  mutate(occ_change=t1-t0) %>% 
+  ungroup() %>% 
+  mutate(appearance=ifelse(occ_change==1, 1, 0)) %>% 
+  mutate(disappearance=ifelse(occ_change==-1, 1, 0)) %>% 
+  group_by(taxon) %>% 
+  summarise(appearance=sum(appearance),
+            disappearance=sum(disappearance)) %>% 
+  left_join(taxon_dif_ad)
+
+plot2ad <- ggplot(appearance_disappearance_ad)+
+  geom_col(aes(x=appearance, y=reorder(taxon, diff)), fill="green")+
+  geom_col(aes(x=-disappearance, y=taxon), fill="red")+
+  theme(axis.title.y=element_blank()) 
+
+ggarrange(plot1ad, plot2ad, 
+          ncol=2)
+
+require("ggrepel")
+
+ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
+  geom_point()+
+  geom_text_repel(label=appearance_disappearance_ad$taxon)+
+  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
+  theme_bw()+
+  geom_hline(yintercept=0)+
+  geom_vline(xintercept=0)
+
 #### 2.5 Richness change ####
 
 test <-data %>% group_by(site_name, taxon, year) %>% summarise(tot_obs=sum(tot_obs)) %>% filter(grepl("Lumbricus", taxon)) %>% pivot_wider(names_from=taxon, values_from=tot_obs)
