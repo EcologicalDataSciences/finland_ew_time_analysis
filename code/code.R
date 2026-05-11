@@ -50,7 +50,7 @@ data2015cleaning$taxon <- gsub("adult A. tuberculata", "Aporrectodea caliginosa"
 data2015cleaning$taxon <- gsub("adult A. rosea", "Aporrectodea rosea", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("adult A. caliginosa", "Aporrectodea caliginosa", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("adult O. tyrtaeum", "Octolasion lacteum", data2015cleaning$taxon)
-data2015cleaning$taxon <- gsub("adult L. terrestris", "Lumbricus terrestris/herculeus", data2015cleaning$taxon)
+data2015cleaning$taxon <- gsub("adult L. terrestris", "Lumbricus terrestris", data2015cleaning$taxon)
 
 # I also change names in 2025 data, to keep only adults and subadults identified at species level
 
