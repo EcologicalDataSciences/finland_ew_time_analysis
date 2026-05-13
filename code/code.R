@@ -13,7 +13,8 @@ library(tidyverse)
 sites <- sites_resampled2025 %>% # here we want the list of sites resampled
   select(site_name, replicate) %>% 
   distinct() %>% 
-  filter(!grepl("X",replicate)) # removing replicate "X" that was just an unnecessary additional replicate we did on the field
+  filter(!grepl("X",replicate)) %>% # removing replicate "X" that was just an unnecessary additional replicate we did on the field
+  filter(!grepl("Tvarminne",site_name))
 
 data2025cleaning <- sites %>% 
   left_join(data2025_raw %>% filter(development_stage!="undetermined")) %>%  # to remove pieces of ew that could not be ided and that are not "individual"
@@ -31,6 +32,7 @@ data2015cleaning <- sites %>%
          nb_obs=value) %>% 
   mutate(development_stage = ifelse(grepl("juvenile",taxon), "juvenile", "adult")) %>% 
   group_by(taxon) %>% mutate(tot=sum(nb_obs)) %>% filter(tot!=0) %>% select(-tot) %>% ungroup() # this row is to remove taxon with 0 observation as they could be there because they were found in 2015 data but they are not in any of the sites resampled
+
   
 
 # now we need to have the same species name
@@ -392,7 +394,7 @@ ggplot(richness_ad, aes(x=year, y=richness_ad))+
 
 #### 2.6. Beta (and Gamma) diversity ####
 
-# using additive Whittaker partitioning
+##### 2.6.1 Additive Whittaker partitioning ####
 
 betadiv <- data %>% 
   filter(taxon!="Lumbricus") %>% 
@@ -428,7 +430,7 @@ ggplot(betadiv %>%
        aes(y=value, x=name, fill=year))+
   geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
 
-# using multiplicative Whittaker partitioning
+##### 2.6.2 Multiplicative Whittaker partitioning ####
 
 betadiv2 <- data %>% 
   filter(taxon!="Lumbricus") %>% 
@@ -457,13 +459,30 @@ ggplot(betadiv2 %>%
        aes(y=value, x=name, fill=year))+
   geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
 
+##### 2.6.3 Sorensen #####
+
+library(betapart)
+
+occ2015<-ifelse(mat2015>0,1,0)
+occ2025<-ifelse(mat2025>0,1,0)
+
+beta.multi(occ2015, index.family = "sorensen")
+beta.multi(occ2025, index.family = "sorensen")
+
+beta.multi.abund(mat2015, index.family = "bray")
+beta.multi.abund(mat2025, index.family = "bray")
+
 #### 2.7 Temporal beta ####
 
 library(betapart)
 
 # abundance based
 
-temp_beta <- sites %>% select(site_name) %>% distinct() %>% mutate(temp_beta=NA) %>% mutate(temp_beta_sor=NA)%>% mutate(temp_beta_sim=NA)%>% mutate(temp_beta_sne=NA)
+temp_beta <- sites %>% select(site_name) %>% distinct() %>% 
+  mutate(temp_beta=NA) %>% 
+  mutate(temp_beta_sor=NA) %>% 
+  mutate(temp_beta_sim=NA) %>% 
+  mutate(temp_beta_sne=NA)
 
 for (i in 1:nrow(temp_beta)){
   mat=rbind(mat2015[i,], mat2025[i,])
@@ -484,4 +503,66 @@ for (i in 1:nrow(temp_beta)){
   temp_beta[i, 5] <- temp_beta_i$beta.sne
 }
 
+#### 2.8 Climate change ####
+
+library(Rchelsa) # Chelsa data extraction
+library(terra) # working with raster data
+
+# Selection of coordinates of interest:
+
+coords <-  sites_resampled2025 %>% 
+  select(replicate) %>% 
+  distinct() %>% 
+  left_join(data2015_raw %>% rename(replicate=UID)) %>% 
+  rename(quadrat='Worm Quadrat', 
+         site_name=siteID) %>% 
+  filter(quadrat=="6") %>% 
+  select(site_name, Longitude, Latitude)
+
+# selection of variables of interest
+
+bioclim <- c("bio01", "bio04", "bio12", "scd")
+
+climate_data <- coords
+
+for (i in bioclim){
+  print(i) # to see where we are in the loop
+  year_bioclimX <- getChelsa(i, coords = coords[,2:3], 
+                             date = "1981-2010",
+                             dataset = "chelsa-bioclim")
+  year_bioclimX_t <- data.frame(t(year_bioclimX))
+  rownames(year_bioclimX_t) <- NULL
+  year_bioclimX_t <- data.frame(year_bioclimX_t[-1,])
+  colnames(year_bioclimX_t) <- i
+  year_bioclimX_t[,i] <- as.numeric(year_bioclimX_t[,i])
+  climate_data <- cbind(climate_data, year_bioclimX_t)
+}
+
+richness_change <- richness %>% 
+  pivot_wider(names_from = year, values_from=richness) %>% 
+  mutate(richness_change=t1-t0) %>% 
+  select(site_name, richness_change)
+
+ab_change <- ab_per_site %>% 
+  pivot_wider(names_from = year, values_from=tot_ab) %>% 
+  mutate(ab_change=t1-t0) %>% 
+  select(site_name, ab_change)
+
+
+beta_climate <- climate_data %>% 
+  left_join(temp_beta) %>% 
+  left_join(richness_change) %>% 
+  left_join(ab_change)
+
+ggplot(beta_climate, aes(x=scd, y=temp_beta_sor))+
+  geom_point()+ 
+  geom_smooth(method='lm', formula= y~x)
+
+ggplot(beta_climate, aes(x=bio01, y=richness_change))+
+  geom_point()+ 
+  geom_smooth(method='lm', formula= y~x)
+
+ggplot(beta_climate, aes(x=bio01, y=ab_change))+
+  geom_point()+ 
+  geom_smooth(method='lm', formula= y~x)
 
