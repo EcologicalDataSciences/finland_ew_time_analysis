@@ -3,7 +3,8 @@
 library(readxl)
 
 data2015_raw <- read_excel("data/earthworm data_2015.xlsx")
-data2025_raw <- read_excel("data/Finland_resampling2025_ID.xlsx")
+data2025_raw <- read.csv2("data/Finland_resampling2025_ID.csv")
+
 sites_resampled2025 <- read_excel("data/Finland_resampling2025_Sites.xlsx")
   
 # cleaning data 
@@ -13,11 +14,10 @@ library(tidyverse)
 sites <- sites_resampled2025 %>% # here we want the list of sites resampled
   select(site_name, replicate) %>% 
   distinct() %>% 
-  filter(!grepl("X",replicate)) %>% # removing replicate "X" that was just an unnecessary additional replicate we did on the field
-  filter(!grepl("Tvarminne",site_name))
+  filter(!grepl("X",replicate)) # removing replicate "X" that was just an unnecessary additional replicate we did on the field
 
 data2025cleaning <- sites %>% 
-  left_join(data2025_raw %>% filter(development_stage!="undetermined")) %>%  # to remove pieces of ew that could not be ided and that are not "individual"
+  left_join(data2025_raw %>% filter(development_stage!="undetermined")) %>%    # to remove pieces of ew that could not be ided and that do not count as "individual"
   select(site_name, replicate, taxon, nb_obs, development_stage)
 
 data2015cleaning <- sites %>% 
@@ -44,6 +44,7 @@ unique(data2015cleaning$taxon)
 
 data2015cleaning$taxon <- gsub("juvenile D. octaedra", "Dendrobaena octaedra", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("juvenile Lumbricus", "Lumbricus", data2015cleaning$taxon)
+data2015cleaning$taxon <- gsub("juvenile D. rubidus", "Bimastos rubidus", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("juvenile endogeic", "Undetermined", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("adult D. octaedra", "Dendrobaena octaedra", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("adult D. rubidus", "Bimastos rubidus", data2015cleaning$taxon)
@@ -54,12 +55,7 @@ data2015cleaning$taxon <- gsub("adult A. caliginosa", "Aporrectodea caliginosa",
 data2015cleaning$taxon <- gsub("adult O. tyrtaeum", "Octolasion lacteum", data2015cleaning$taxon)
 data2015cleaning$taxon <- gsub("adult L. terrestris", "Lumbricus terrestris", data2015cleaning$taxon)
 
-# I also change names in 2025 data, to keep only adults and subadults identified at species level
-
-data2025cleaning$taxon <- gsub("Dendrobaena$", "Dendrobaena octaedra", data2025cleaning$taxon) # I put $ so all string that ends with "Dendrobaena" are changed in "undetermined". Then, "Dendrobaena" becomes "Undetermined" but "Dendrobaena octaedra" stays "Dendrobaedna octaedra" instead of "Undetermined octaedra"
-data2025cleaning$taxon <- gsub("Lumbricus$", "Lumbricus", data2025cleaning$taxon) # same as before
-
-# I also need to change the name of a NA observation in a site that is empty because only a part of individual has been found
+# I also need to change the name of a NA observation in a site that is empty because only a part of individual has been found (see row 20)
 
 data2025cleaning$taxon <- ifelse(is.na(data2025cleaning$taxon), "NA", data2025cleaning$taxon)
 data2025cleaning$nb_obs <- ifelse(is.na(data2025cleaning$nb_obs), 0, data2025cleaning$nb_obs)
@@ -79,7 +75,7 @@ data2025 <- data2025cleaning %>%
   summarise(tot_obs=sum(nb_obs)) %>%  
   pivot_wider(names_from = taxon, values_from = tot_obs, values_fill = 0)%>% 
   select(-'NA') %>% 
-  pivot_longer('Dendrobaena octaedra':'Aporrectodea rosea') %>% 
+  pivot_longer('Dendrobaena octaedra':'Octolasion lacteum') %>% 
   mutate(year="t1") %>% 
   rename(taxon=name, 
          tot_obs=value)
@@ -91,7 +87,7 @@ data2025ad <- sites %>%
   summarise(tot_obs=sum(nb_obs)) %>% 
   pivot_wider(names_from = taxon, values_from = tot_obs, values_fill = 0) %>% 
   select(-'NA') %>% 
-  pivot_longer('Dendrobaena octaedra':'Aporrectodea rosea') %>% 
+  pivot_longer('Dendrobaena octaedra':'Octolasion lacteum') %>% 
   mutate(year="t1")%>% 
   rename(taxon=name, 
          tot_obs=value)
@@ -112,8 +108,17 @@ data2015ad <- sites %>%
   rename(taxon=name, 
          tot_obs=value)
 
-data <- rbind(data2015, data2025) %>% ungroup()
-data_adult_only <- rbind(data2015ad, data2025ad) %>% ungroup()
+data <- rbind(data2015, data2025) %>% ungroup() %>% 
+  pivot_wider(names_from = taxon, values_from = tot_obs, values_fill = 0) %>% 
+  pivot_longer('Aporrectodea caliginosa':'Octolasion') %>% 
+  rename(taxon=name, 
+         tot_obs=value)
+  
+data_adult_only <- rbind(data2015ad, data2025ad) %>% ungroup() %>% 
+  pivot_wider(names_from = taxon, values_from = tot_obs, values_fill = 0) %>% 
+  pivot_longer('Aporrectodea caliginosa':'Lumbricus castaneus') %>% 
+  rename(taxon=name, 
+         tot_obs=value)
 
 #rm(data2015_raw, data2015cleaning, data2015, data2015ad,
 #   data2025_raw, data2025cleaning, data2025, data2025ad,)
@@ -132,6 +137,10 @@ mean(ab_per_site$tot_ab[ab_per_site$year=="t1"])
 sd(ab_per_site$tot_ab[ab_per_site$year=="t0"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0"]))
 sd(ab_per_site$tot_ab[ab_per_site$year=="t1"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1"]))
 
+ggplot(ab_per_site, aes(x=tot_ab))+
+  geom_density()
+  
+
 wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0"],
             ab_per_site$tot_ab[ab_per_site$year=="t1"],
             paired=TRUE)
@@ -142,7 +151,6 @@ t.test(ab_per_site$tot_ab[ab_per_site$year=="t0"],
 
 ggplot(ab_per_site, aes(x=year, y=tot_ab))+
   geom_boxplot(width=0.2, col="brown", fill=NA)+
-  geom_jitter(width=0.1, alpha=0.5)+
   theme_bw()
 
 #### 2.2 Total abundance change - adult only ####
@@ -167,7 +175,6 @@ t.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0"],
 
 ggplot(ab_per_site_ad, aes(x=year, y=tot_ab))+
   geom_boxplot(width=0.2, col="brown", fill=NA)+
-  geom_jitter(width=0.1, alpha=0.5)+
   theme_bw()
 
 #### 2.3 Species abundance change ####
@@ -179,6 +186,7 @@ library(adespatial)
 mat2015 <- data %>% 
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   filter(year=="t0") %>% 
   group_by(site_name, taxon) %>% 
   summarise(tot_obs_sp = sum(tot_obs)) %>% 
@@ -192,14 +200,14 @@ mat2015 <- as.matrix(mat2015)
 mat2025 <- data %>% 
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   filter(year=="t1") %>% 
   group_by(site_name, taxon) %>% 
   summarise(tot_obs_sp = sum(tot_obs)) %>% 
   select(site_name, taxon, tot_obs_sp) %>% 
   distinct() %>% 
   pivot_wider(names_from = taxon, values_from=tot_obs_sp)  %>% 
-  ungroup() %>% select(-site_name) %>% 
-  mutate('Octolasion lacteum'=0) # I add a species with no obs for O lacteum because we need the same species for comparison
+  ungroup() %>% select(-site_name) 
   
 
 mat2025 <- as.matrix(mat2025)
@@ -211,6 +219,9 @@ p.adjust(a$t.test$p.param, method="holm") # p values corrected for multiple test
 # figure
 
 taxon_dif <- data %>% 
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   group_by(taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
@@ -223,6 +234,9 @@ plot1 <- ggplot(taxon_dif,
         axis.title.y=element_blank()) 
 
 appearance_disappearance <- data %>%
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   group_by(taxon,year, site_name) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs_sp > 0, 1, 0))  %>% 
@@ -252,6 +266,7 @@ ggarrange(plot1, plot2,
 mat2015a <- data_adult_only %>% 
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   filter(year=="t0") %>% 
   group_by(site_name, taxon) %>% 
   summarise(tot_obs_sp = sum(tot_obs)) %>% 
@@ -265,15 +280,14 @@ mat2015a <- as.matrix(mat2015a)
 mat2025a <- data_adult_only %>% 
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   filter(year=="t1") %>% 
   group_by(site_name, taxon) %>% 
   summarise(tot_obs_sp = sum(tot_obs)) %>% 
   select(site_name, taxon, tot_obs_sp) %>% 
   distinct() %>% 
   pivot_wider(names_from = taxon, values_from=tot_obs_sp)  %>% 
-  ungroup() %>% select(-site_name) %>% 
-  mutate('Octolasion lacteum'=0) # I add a species with no obs for O lacteum because we need the same species for comparison
-
+  ungroup() %>% select(-site_name)
 
 mat2025a <- as.matrix(mat2025a)
 
@@ -284,6 +298,9 @@ p.adjust(b$t.test$p.param, method="holm") # p values corrected for multiple test
 # figure
 
 taxon_dif_ad <- data_adult_only %>% 
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   group_by(taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
@@ -296,6 +313,9 @@ plot1ad <- ggplot(taxon_dif_ad,
         axis.title.y=element_blank()) 
 
 appearance_disappearance_ad <- data_adult_only %>%
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
   group_by(taxon,year, site_name) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs_sp > 0, 1, 0))  %>% 
@@ -330,13 +350,10 @@ ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-disappearan
 
 #### 2.5 Richness change ####
 
-test <-data %>% group_by(site_name, taxon, year) %>% summarise(tot_obs=sum(tot_obs)) %>% filter(grepl("Lumbricus", taxon)) %>% pivot_wider(names_from=taxon, values_from=tot_obs)
-
-# a few sites with only Lumbricus sp as Lumbricus, I'll try to remove them
-
 richness <- data %>% 
+  filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
-  filter(taxon!="Undetermined") %>%
+  filter(taxon!="Octolasion") %>% 
   group_by(site_name, taxon, year) %>% 
   summarise(tot_obs=sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs > 0, 1, 0))  %>% 
@@ -365,8 +382,9 @@ ggplot(richness, aes(x=year, y=richness))+
 #### 2.5 Richness change - adult only ####
 
 richness_ad <- data_adult_only %>% 
+  filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
-  filter(taxon!="Undetermined") %>%
+  filter(taxon!="Octolasion") %>% 
   group_by(site_name, taxon, year) %>% 
   summarise(tot_obs=sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs > 0, 1, 0))  %>% 
@@ -397,8 +415,9 @@ ggplot(richness_ad, aes(x=year, y=richness_ad))+
 ##### 2.6.1 Additive Whittaker partitioning ####
 
 betadiv <- data %>% 
+  filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
-  filter(taxon!="Undetermined") %>%
+  filter(taxon!="Octolasion") %>% 
   separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% 
   filter(tot_obs>0) %>% 
   group_by(year) %>% 
@@ -428,13 +447,15 @@ ggplot(betadiv %>%
          select(beta_1, beta_2, beta_3) %>%  
          pivot_longer(col=c(beta_1, beta_2, beta_3)),
        aes(y=value, x=name, fill=year))+
-  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge())  +
+  theme_bw()
 
 ##### 2.6.2 Multiplicative Whittaker partitioning ####
 
 betadiv2 <- data %>% 
+  filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
-  filter(taxon!="Undetermined") %>%
+  filter(taxon!="Octolasion") %>% 
   separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% 
   filter(tot_obs>0) %>% 
   group_by(year) %>% 
@@ -457,7 +478,8 @@ ggplot(betadiv2 %>%
          select(beta_1, beta_2, beta_3) %>%  
          pivot_longer(col=c(beta_1, beta_2, beta_3)),
        aes(y=value, x=name, fill=year))+
-  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) 
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) +
+  theme_b
 
 ##### 2.6.3 Sorensen #####
 
@@ -478,7 +500,7 @@ library(betapart)
 
 # abundance based
 
-temp_beta <- sites %>% select(site_name) %>% distinct() %>% 
+temp_beta <- data %>% select(site_name) %>% distinct() %>% 
   mutate(temp_beta=NA) %>% 
   mutate(temp_beta_sor=NA) %>% 
   mutate(temp_beta_sim=NA) %>% 
