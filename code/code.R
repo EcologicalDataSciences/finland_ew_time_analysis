@@ -129,7 +129,9 @@ data_adult_only <- rbind(data2015ad, data2025ad) %>% ungroup() %>%
 
 ab_per_site <- data %>% 
   group_by(site_name, year) %>% 
-  summarise(tot_ab = sum(tot_obs))
+  summarise(tot_ab = sum(tot_obs)) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
+
 
 mean(ab_per_site$tot_ab[ab_per_site$year=="t0"])
 mean(ab_per_site$tot_ab[ab_per_site$year=="t1"])
@@ -137,27 +139,66 @@ mean(ab_per_site$tot_ab[ab_per_site$year=="t1"])
 sd(ab_per_site$tot_ab[ab_per_site$year=="t0"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0"]))
 sd(ab_per_site$tot_ab[ab_per_site$year=="t1"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1"]))
 
-ggplot(ab_per_site, aes(x=tot_ab))+
-  geom_density()
-  
-
 wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0"],
             ab_per_site$tot_ab[ab_per_site$year=="t1"],
             paired=TRUE)
 
-t.test(ab_per_site$tot_ab[ab_per_site$year=="t0"],
-            ab_per_site$tot_ab[ab_per_site$year=="t1"],
+## per region
+
+# Lammi
+
+mean(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Lammi"])
+mean(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Lammi"])
+
+sd(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Lammi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Lammi"]))
+sd(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Lammi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Lammi"]))
+
+wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Lammi"],
+            ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Lammi"],
             paired=TRUE)
 
-ggplot(ab_per_site, aes(x=year, y=tot_ab))+
-  geom_boxplot(width=0.2, col="brown", fill=NA)+
-  theme_bw()
+# kilpisjarvi
+
+mean(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="kilpisjarvi"])
+mean(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="kilpisjarvi"])
+
+sd(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="kilpisjarvi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="kilpisjarvi"]))
+sd(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="kilpisjarvi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="kilpisjarvi"]))
+
+wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="kilpisjarvi"],
+            ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="kilpisjarvi"],
+            paired=TRUE)
+
+# Tvarminne
+
+mean(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Tvarminne"])
+mean(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Tvarminne"])
+
+sd(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Tvarminne"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Tvarminne"]))
+sd(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Tvarminne"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Tvarminne"]))
+
+wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Tvarminne"],
+            ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Tvarminne"],
+            paired=TRUE)
+
+# Levi
+
+mean(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Levi"])
+mean(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Levi"])
+
+sd(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Levi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Levi"]))
+sd(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Levi"])/sqrt(length(ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Levi"]))
+
+wilcox.test(ab_per_site$tot_ab[ab_per_site$year=="t0" & ab_per_site$region=="Levi"],
+            ab_per_site$tot_ab[ab_per_site$year=="t1" & ab_per_site$region=="Levi"],
+            paired=TRUE)
 
 #### 2.2 Total abundance change - adult only ####
 
 ab_per_site_ad <- data_adult_only %>% 
   group_by(site_name, year) %>% 
-  summarise(tot_ab = sum(tot_obs))
+  summarise(tot_ab = sum(tot_obs)) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
 
 mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0"])
 mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1"])
@@ -169,13 +210,56 @@ wilcox.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0"],
             ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1"],
             paired=TRUE)
 
-t.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0"],
-       ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1"],
-       paired=TRUE)
 
-ggplot(ab_per_site_ad, aes(x=year, y=tot_ab))+
-  geom_boxplot(width=0.2, col="brown", fill=NA)+
-  theme_bw()
+## per region
+
+# Lammi
+
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Lammi"])
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Lammi"])
+
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Lammi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Lammi"]))
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Lammi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Lammi"]))
+
+wilcox.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Lammi"],
+            ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Lammi"],
+            paired=TRUE)
+
+# kilpisjarvi
+
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="kilpisjarvi"])
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="kilpisjarvi"])
+
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="kilpisjarvi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="kilpisjarvi"]))
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="kilpisjarvi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="kilpisjarvi"]))
+
+wilcox.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="kilpisjarvi"],
+            ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="kilpisjarvi"],
+            paired=TRUE)
+
+# Tvarminne
+
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Tvarminne"])
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Tvarminne"])
+
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Tvarminne"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Tvarminne"]))
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Tvarminne"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Tvarminne"]))
+
+wilcox.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Tvarminne"],
+            ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Tvarminne"],
+            paired=TRUE)
+
+# Levi
+
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Levi"])
+mean(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Levi"])
+
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Levi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Levi"]))
+sd(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Levi"])/sqrt(length(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Levi"]))
+
+wilcox.test(ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t0" & ab_per_site_ad$region=="Levi"],
+            ab_per_site_ad$tot_ab[ab_per_site_ad$year=="t1" & ab_per_site_ad$region=="Levi"],
+            paired=TRUE)
 
 #### 2.3 Species abundance change ####
 
@@ -212,7 +296,7 @@ mat2025 <- data %>%
 
 mat2025 <- as.matrix(mat2025)
 
-a <-tpaired.krandtest(mat2015, mat2025, nperm=99)
+a <-tpaired.krandtest(mat2015, mat2025, nperm=999)
 a
 p.adjust(a$t.test$p.param, method="holm") # p values corrected for multiple testing
 
@@ -225,7 +309,7 @@ taxon_dif <- data %>%
   group_by(taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
-  summarise(diff=(t1-t0)/(t1+t0))
+  summarise(diff=t1-t0)
 
 plot1 <- ggplot(taxon_dif,
   aes(x=diff, y=reorder(taxon, diff), fill=sign(diff)))+
@@ -261,6 +345,19 @@ library(ggpubr)
 ggarrange(plot1, plot2, 
           ncol=2)
 
+require("ggrepel")
+
+ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
+  geom_hline(yintercept=0, alpha=0.3)+
+  geom_vline(xintercept=0, alpha=0.3)+
+  geom_point(aes(col=taxon))+
+  geom_text_repel(label=appearance_disappearance$taxon, aes(col=taxon))+
+  #  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
+  theme_bw()+
+  xlab("Occurence change")+
+  ylab("Abundance change")+
+  theme(legend.position = "none")
+
 #### 2.4 Species abundance change - adult only ####
 
 mat2015a <- data_adult_only %>% 
@@ -291,7 +388,7 @@ mat2025a <- data_adult_only %>%
 
 mat2025a <- as.matrix(mat2025a)
 
-b <-tpaired.krandtest(mat2015a, mat2025a, nperm=99)
+b <-tpaired.krandtest(mat2015a, mat2025a, nperm=999)
 b
 p.adjust(b$t.test$p.param, method="holm") # p values corrected for multiple testing
 
@@ -304,7 +401,7 @@ taxon_dif_ad <- data_adult_only %>%
   group_by(taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
-  summarise(diff=(t1-t0)/(t1+t0))
+  summarise(diff=t1-t0)
 
 plot1ad <- ggplot(taxon_dif_ad,
                 aes(x=diff, y=reorder(taxon, diff), fill=sign(diff)))+
@@ -341,12 +438,15 @@ ggarrange(plot1ad, plot2ad,
 require("ggrepel")
 
 ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
-  geom_point()+
-  geom_text_repel(label=appearance_disappearance_ad$taxon)+
-  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
+  geom_hline(yintercept=0, alpha=0.3)+
+  geom_vline(xintercept=0, alpha=0.3)+
+  geom_point(aes(col=taxon))+
+  geom_text_repel(label=appearance_disappearance_ad$taxon, aes(col=taxon))+
+#  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
   theme_bw()+
-  geom_hline(yintercept=0)+
-  geom_vline(xintercept=0)
+  xlab("Occurence change")+
+  ylab("Abundance change")+
+  theme(legend.position = "none")
 
 #### 2.5 Richness change ####
 
@@ -358,7 +458,8 @@ richness <- data %>%
   summarise(tot_obs=sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs > 0, 1, 0))  %>% 
   ungroup() %>% group_by(site_name, year) %>% 
-  summarise(richness=sum(occurence))
+  summarise(richness=sum(occurence)) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
   
 mean(richness$richness[richness$year=="t0"])
 mean(richness$richness[richness$year=="t1"])
@@ -367,19 +468,60 @@ sd(richness$richness[richness$year=="t0"])/sqrt(length(richness$richness[richnes
 sd(richness$richness[richness$year=="t1"])/sqrt(length(richness$richness[richness$year=="t1"]))
 
 wilcox.test(richness$richness[richness$year=="t0"],
-            richness$richness[richness$year=="t1"],
+           richness$richness[richness$year=="t1"],
             paired=TRUE)
 
-t.test(richness$richness[richness$year=="t0"],
-       richness$richness[richness$year=="t1"],
-       paired=TRUE)
+# per region
 
-ggplot(richness, aes(x=year, y=richness))+
-  geom_boxplot(width=0.2, col="brown", fill=NA)+
-  geom_jitter(width=0.1, alpha=0.5)+
-  theme_bw()
+## Lammi
 
-#### 2.5 Richness change - adult only ####
+mean(richness$richness[richness$year=="t0" & richness$region=="Lammi"])
+mean(richness$richness[richness$year=="t1" & richness$region=="Lammi"])
+
+sd(richness$richness[richness$year=="t0" & richness$region=="Lammi"])/sqrt(length(richness$richness[richness$year=="t0" & richness$region=="Lammi"]))
+sd(richness$richness[richness$year=="t1" & richness$region=="Lammi"])/sqrt(length(richness$richness[richness$year=="t1" & richness$region=="Lammi"]))
+
+wilcox.test(richness$richness[richness$year=="t0" & richness$region=="Lammi"],
+           richness$richness[richness$year=="t1" & richness$region=="Lammi"],
+            paired=TRUE)
+
+## Tvarminne
+
+mean(richness$richness[richness$year=="t0" & richness$region=="Tvarminne"])
+mean(richness$richness[richness$year=="t1" & richness$region=="Tvarminne"])
+
+sd(richness$richness[richness$year=="t0" & richness$region=="Tvarminne"])/sqrt(length(richness$richness[richness$year=="t0" & richness$region=="Tvarminne"]))
+sd(richness$richness[richness$year=="t1" & richness$region=="Tvarminne"])/sqrt(length(richness$richness[richness$year=="t1" & richness$region=="Tvarminne"]))
+
+wilcox.test(richness$richness[richness$year=="t0" & richness$region=="Tvarminne"],
+           richness$richness[richness$year=="t1" & richness$region=="Tvarminne"],
+            paired=TRUE)
+
+## Levi
+
+mean(richness$richness[richness$year=="t0" & richness$region=="Levi"])
+mean(richness$richness[richness$year=="t1" & richness$region=="Levi"])
+
+sd(richness$richness[richness$year=="t0" & richness$region=="Levi"])/sqrt(length(richness$richness[richness$year=="t0" & richness$region=="Levi"]))
+sd(richness$richness[richness$year=="t1" & richness$region=="Levi"])/sqrt(length(richness$richness[richness$year=="t1" & richness$region=="Levi"]))
+
+wilcox.test(richness$richness[richness$year=="t0" & richness$region=="Levi"],
+           richness$richness[richness$year=="t1" & richness$region=="Levi"],
+            paired=TRUE)
+
+## Kilpisjarvi
+
+mean(richness$richness[richness$year=="t0" & richness$region=="kilpisjarvi"])
+mean(richness$richness[richness$year=="t1" & richness$region=="kilpisjarvi"])
+
+sd(richness$richness[richness$year=="t0" & richness$region=="kilpisjarvi"])/sqrt(length(richness$richness[richness$year=="t0" & richness$region=="kilpisjarvi"]))
+sd(richness$richness[richness$year=="t1" & richness$region=="kilpisjarvi"])/sqrt(length(richness$richness[richness$year=="t1" & richness$region=="kilpisjarvi"]))
+
+wilcox.test(richness$richness[richness$year=="t0" & richness$region=="kilpisjarvi"],
+            richness$richness[richness$year=="t1" & richness$region=="kilpisjarvi"],
+            paired=TRUE)
+
+#### 2.6 Richness change - adult only ####
 
 richness_ad <- data_adult_only %>% 
   filter(taxon!="Undetermined") %>% 
@@ -389,7 +531,8 @@ richness_ad <- data_adult_only %>%
   summarise(tot_obs=sum(tot_obs)) %>% 
   mutate(occurence=ifelse(tot_obs > 0, 1, 0))  %>% 
   ungroup() %>% group_by(site_name, year) %>% 
-  summarise(richness_ad=sum(occurence))
+  summarise(richness_ad=sum(occurence)) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
 
 mean(richness_ad$richness_ad[richness_ad$year=="t0"])
 mean(richness_ad$richness_ad[richness_ad$year=="t1"])
@@ -398,21 +541,63 @@ sd(richness_ad$richness_ad[richness_ad$year=="t0"])/sqrt(length(richness_ad$rich
 sd(richness_ad$richness_ad[richness_ad$year=="t1"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t1"]))
 
 wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0"],
-            richness_ad$richness_ad[richness_ad$year=="t1"],
+          richness_ad$richness_ad[richness_ad$year=="t1"],
+
+
+# per region
+
+## Lammi
+
+mean(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Lammi"])
+
+mean(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Lammi"])
+
+sd(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Lammi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Lammi"]))
+sd(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Lammi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Lammi"]))
+
+wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Lammi"],
+           richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Lammi"],
             paired=TRUE)
 
-t.test(richness_ad$richness_ad[richness_ad$year=="t0"],
-       richness_ad$richness_ad[richness_ad$year=="t1"],
-       paired=TRUE)
+## Tvarminne
 
-ggplot(richness_ad, aes(x=year, y=richness_ad))+
-  geom_boxplot(width=0.2, col="brown", fill=NA)+
-  geom_jitter(width=0.1, alpha=0.5)+
-  theme_bw()
+mean(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Tvarminne"])
+mean(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Tvarminne"])
 
-#### 2.6. Beta (and Gamma) diversity ####
+sd(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Tvarminne"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Tvarminne"]))
+sd(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Tvarminne"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Tvarminne"]))
 
-##### 2.6.1 Additive Whittaker partitioning ####
+wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Tvarminne"],
+           richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Tvarminne"],
+            paired=TRUE)
+
+## Levi
+
+mean(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Levi"])
+mean(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Levi"])
+
+sd(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Levi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Levi"]))
+sd(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Levi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Levi"]))
+
+wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="Levi"],
+           richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="Levi"],
+            paired=TRUE)
+
+## Kilpisjarvi
+
+mean(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="kilpisjarvi"])
+mean(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="kilpisjarvi"])
+
+sd(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="kilpisjarvi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="kilpisjarvi"]))
+sd(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="kilpisjarvi"])/sqrt(length(richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="kilpisjarvi"]))
+
+wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0" & richness_ad$region=="kilpisjarvi"],
+           richness_ad$richness_ad[richness_ad$year=="t1" & richness_ad$region=="kilpisjarvi"],
+            paired=TRUE)
+
+#### 2.7. Beta (and Gamma) diversity ####
+
+##### 2.7.1 Additive Whittaker partitioning ####
 
 betadiv <- data %>% 
   filter(taxon!="Undetermined") %>% 
@@ -423,34 +608,40 @@ betadiv <- data %>%
   group_by(year) %>% 
   mutate(gamma=length(unique(taxon))) %>% 
   group_by(year, region) %>% 
-  mutate(alpha_3=length(unique(taxon))) %>% 
+  mutate(alpha_region=length(unique(taxon))) %>% 
   group_by(year, region, site_name) %>% 
-  mutate(alpha_2=length(unique(taxon))) %>% 
+  mutate(alpha_site=length(unique(taxon))) %>% 
   group_by(year, region, site_name, replicate) %>% 
-  mutate(alpha_1=length(unique(taxon))) %>% 
-  mutate(beta_3=gamma-alpha_3, 
-         beta_2=alpha_3-alpha_2,
-         beta_1=alpha_2-alpha_1) %>% 
+  mutate(alpha_quadrat=length(unique(taxon))) %>% 
+  mutate(beta_region=gamma-alpha_region, 
+         beta_site=alpha_region-alpha_site,
+         beta_quadrat=alpha_site-alpha_quadrat) %>% 
   right_join(data %>% separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% select(region, site_name, replicate, year)) %>% 
   select(-taxon) %>% distinct() %>% 
   replace(is.na(.), 0) %>% 
-  mutate(gamma=ifelse(year=="t0", 7, 6)) #i have to think about  a better way 
+  mutate(gamma=ifelse(year=="t0", 7, 8)) # because empty sites have a null gamma div with my code
   
 ggplot(betadiv %>% 
-         select(alpha_1, alpha_2, alpha_3, gamma) %>%  
-         pivot_longer(col=c(alpha_1, alpha_2, alpha_3, gamma)),
+         select(alpha_quadrat, alpha_site, alpha_region, gamma) %>%  
+         pivot_longer(col=c(alpha_quadrat, alpha_site, alpha_region, gamma)),
        aes(y=value, x=name, fill=year))+
   geom_bar(stat = "summary", fun = "mean", position=position_dodge()) +
-  theme_bw()
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))+
+  ylab("")+
+  xlab("")
 
 ggplot(betadiv %>% 
-         select(beta_1, beta_2, beta_3) %>%  
-         pivot_longer(col=c(beta_1, beta_2, beta_3)),
+         select(beta_quadrat, beta_site, beta_region) %>%  
+         pivot_longer(col=c(beta_quadrat, beta_site, beta_region)),
        aes(y=value, x=name, fill=year))+
-  geom_bar(stat = "summary", fun = "mean", position=position_dodge())  +
-  theme_bw()
+  geom_bar(stat = "summary", fun = "mean", position=position_dodge()) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))+
+  ylab("")+
+  xlab("")
 
-##### 2.6.2 Multiplicative Whittaker partitioning ####
+##### 2.7.2 Multiplicative Whittaker partitioning ####
 
 betadiv2 <- data %>% 
   filter(taxon!="Undetermined") %>% 
@@ -461,27 +652,31 @@ betadiv2 <- data %>%
   group_by(year) %>% 
   mutate(gamma=length(unique(taxon))) %>% 
   group_by(year, region) %>% 
-  mutate(alpha_3=length(unique(taxon))) %>% 
+  mutate(alpha_region=length(unique(taxon))) %>% 
   group_by(year, region, site_name) %>% 
-  mutate(alpha_2=length(unique(taxon))) %>% 
+  mutate(alpha_site=length(unique(taxon))) %>% 
   group_by(year, region, site_name, replicate) %>% 
-  mutate(alpha_1=length(unique(taxon))) %>% 
-  mutate(beta_3=gamma/alpha_3, 
-         beta_2=alpha_3/alpha_2,
-         beta_1=alpha_2/alpha_1) %>% 
+  mutate(alpha_quadrat=length(unique(taxon))) %>% 
+  mutate(beta_region=gamma/alpha_region, 
+         beta_site=alpha_region/alpha_site,
+         beta_quadrat=alpha_site/alpha_quadrat) %>% 
   right_join(data %>% separate_wider_delim(site_name, "_", names = c("region", NA), cols_remove = FALSE) %>% select(region, site_name, replicate, year)) %>% 
   select(-taxon) %>% distinct() %>% 
   replace(is.na(.), 0) %>% 
   mutate(gamma=ifelse(year=="t0", 7, 6))
 
 ggplot(betadiv2 %>% 
-         select(beta_1, beta_2, beta_3) %>%  
-         pivot_longer(col=c(beta_1, beta_2, beta_3)),
+         select(beta_quadrat, beta_site, beta_region) %>%  
+         pivot_longer(col=c(beta_quadrat, beta_site, beta_region)),
        aes(y=value, x=name, fill=year))+
   geom_bar(stat = "summary", fun = "mean", position=position_dodge()) +
-  theme_b
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))+
+  ylab("")+
+  xlab("")
 
-##### 2.6.3 Sorensen #####
+
+##### 2.7.3 Sorensen #####
 
 library(betapart)
 
@@ -494,7 +689,7 @@ beta.multi(occ2025, index.family = "sorensen")
 beta.multi.abund(mat2015, index.family = "bray")
 beta.multi.abund(mat2025, index.family = "bray")
 
-#### 2.7 Temporal beta ####
+#### 2.8 Temporal beta ####
 
 library(betapart)
 
@@ -525,7 +720,7 @@ for (i in 1:nrow(temp_beta)){
   temp_beta[i, 5] <- temp_beta_i$beta.sne
 }
 
-#### 2.8 Climate change ####
+#### 2.9 Climate change ####
 
 library(Rchelsa) # Chelsa data extraction
 library(terra) # working with raster data
