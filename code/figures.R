@@ -80,3 +80,29 @@ ggplot(world50) +
   # then plotting sites
   geom_point(data = sites_to_map, mapping = aes(x = Longitude, y = Latitude, col=region))+
   theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+
+
+#### ab change compard with richness change
+
+ab_vs_change <- ab_per_site %>% 
+  left_join(richness) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
+
+ggplot(ab_vs_change, aes(y=log(1+tot_ab), x=richness))+
+  geom_point(aes(col=year))+
+  theme_bw()
+
+ab_change_vs_richness_change <- ab_vs_change %>% 
+  pivot_wider(names_from = year, values_from = c(tot_ab, richness)) %>% 
+  mutate(richness_change = richness_t1-richness_t0,
+         ab_change = tot_ab_t1-tot_ab_t0)
+
+ggplot(ab_change_vs_richness_change, aes(y=ab_change, x=richness_change))+
+  geom_point(aes(col=region))+
+  theme_bw()+
+  geom_hline(yintercept=0, alpha=0.3)+
+  geom_vline(xintercept=0, alpha=0.3)+
+  xlab("Richness change")+
+  ylab("Abundance change")
+  
+  
