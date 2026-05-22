@@ -542,7 +542,7 @@ sd(richness_ad$richness_ad[richness_ad$year=="t1"])/sqrt(length(richness_ad$rich
 
 wilcox.test(richness_ad$richness_ad[richness_ad$year=="t0"],
           richness_ad$richness_ad[richness_ad$year=="t1"],
-
+          paired=TRUE)
 
 # per region
 

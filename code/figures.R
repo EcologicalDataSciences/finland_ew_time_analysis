@@ -483,10 +483,95 @@ mean_subzerodays2015_2024 <- mean(subzerodays2015,
                       subzerodays2017,
                       subzerodays2018,
                       subzerodays2019,
-                      subzerodays2020,
+                  #    subzerodays2020, # 2020 has lots of blank spaces, weird
                       subzerodays2021,
                       subzerodays2022,
                       subzerodays2023,
                       subzerodays2024)
 
 subzerodays_change <- mean_subzerodays2015_2024 - mean_subzerodays2005_2014
+
+plot(subzerodays_change)
+plot(mean_subzerodays2005_2014)
+plot(subzerodays2015)
+
+writeRaster(mean_subzerodays2005_2014, "derived_data/mean_subzerodays2005_2014.tif")
+writeRaster(mean_subzerodays2015_2024, "derived_data/mean_subzerodays2015_2024.tif")
+writeRaster(subzerodays_change, "derived_data/subzerodays_change.tif")
+
+writeRaster(subzerodays2005, "derived_data/subzerodays2005.tif")
+writeRaster(subzerodays2006, "derived_data/subzerodays2006.tif")
+writeRaster(subzerodays2007, "derived_data/subzerodays2007.tif")
+writeRaster(subzerodays2008, "derived_data/subzerodays2008.tif")
+writeRaster(subzerodays2009, "derived_data/subzerodays2009.tif")
+writeRaster(subzerodays2010, "derived_data/subzerodays2010.tif")
+writeRaster(subzerodays2011, "derived_data/subzerodays2011.tif")
+writeRaster(subzerodays2012, "derived_data/subzerodays2012.tif")
+writeRaster(subzerodays2013, "derived_data/subzerodays2013.tif")
+writeRaster(subzerodays2014, "derived_data/subzerodays2014.tif")
+writeRaster(subzerodays2015, "derived_data/subzerodays2015.tif")
+writeRaster(subzerodays2016, "derived_data/subzerodays2016.tif")
+writeRaster(subzerodays2017, "derived_data/subzerodays2017.tif")
+writeRaster(subzerodays2018, "derived_data/subzerodays2018.tif")
+writeRaster(subzerodays2019, "derived_data/subzerodays2019.tif")
+writeRaster(subzerodays2020, "derived_data/subzerodays2020.tif")
+writeRaster(subzerodays2021, "derived_data/subzerodays2021.tif")
+writeRaster(subzerodays2022, "derived_data/subzerodays2022.tif")
+writeRaster(subzerodays2023, "derived_data/subzerodays2023.tif")
+writeRaster(subzerodays2024, "derived_data/subzerodays2024.tif")
+
+# crop raster to match Finland boundaries
+
+finland_reprojected = st_transform(finland, st_crs(subzerodays_change))
+
+mean_subzerodays2005_2014_cropped = crop(mean_subzerodays2005_2014, finland_reprojected)
+mean_subzerodays2005_2014_final = mask(mean_subzerodays2005_2014_cropped, finland_reprojected)
+plot(mean_subzerodays2005_2014_final)
+
+
+mean_subzerodays2015_2024_cropped = crop(mean_subzerodays2015_2024, finland_reprojected)
+mean_subzerodays2015_2024_final = mask(mean_subzerodays2015_2024_cropped, finland_reprojected)
+plot(mean_subzerodays2015_2024_final)
+
+
+subzerodays_change_cropped = crop(subzerodays_change, finland_reprojected)
+subzerodays_change_final = mask(subzerodays_change_cropped, finland_reprojected)
+plot(subzerodays_change_final)
+
+# nice plots
+
+library(tidyterra)
+
+
+
+# i have to merge my raster and name them so I can plot them with facet and have the same legend with same breaks
+
+for_plot <- c(mean_subzerodays2005_2014_final,mean_subzerodays2015_2024_final)
+names(for_plot[[1]]) <- "2005-2014"
+names(for_plot[[2]]) <- "2015-2024"
+
+
+fig0 <- ggplot()+
+  geom_spatraster(data=for_plot)+
+  facet_wrap(~lyr)+
+  scale_fill_grass_b(palette = "sepia", breaks = c(34,60,90,120,150,180,210,250), na.value=NA)+
+  theme_bw()+
+  labs(fill = "Mean yearly number of day\nwith less than 0°C")
+
+ggsave(file="figures/fig0.svg", plot=fig0, height=24, width=24, units="cm")
+
+
+
+fig1 <- ggplot()+
+  geom_spatraster(data=subzerodays_change_final, aes(fill=sum))+
+  scale_fill_gradient2(, na.value=NA)+
+  theme_bw()+
+  labs(fill = "Change in mean yearly\nnumber of day with less\nthan 0°C between\n2005-2014 and 2015-2024")+
+  geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
+                                                          "kilpisjarvi", "Levi", "Lammi", 
+                                                          "Tvarminne")),
+             mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
+  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
+
+ggsave(file="figures/fig1.svg", plot=fig1, height=12, width=12, units="cm")
+
