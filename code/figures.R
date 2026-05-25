@@ -491,6 +491,7 @@ mean_subzerodays2015_2024 <- mean(subzerodays2015,
 
 subzerodays_change <- mean_subzerodays2015_2024 - mean_subzerodays2005_2014
 
+
 plot(subzerodays_change)
 plot(mean_subzerodays2005_2014)
 plot(subzerodays2015)
@@ -564,7 +565,7 @@ ggsave(file="figures/fig0.svg", plot=fig0, height=24, width=24, units="cm")
 
 fig1 <- ggplot()+
   geom_spatraster(data=subzerodays_change_final, aes(fill=sum))+
-  scale_fill_gradient2(, na.value=NA)+
+  scale_fill_gradient2( na.value=NA)+
   theme_bw()+
   labs(fill = "Change in mean yearly\nnumber of day with less\nthan 0°C between\n2005-2014 and 2015-2024")+
   geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
@@ -574,4 +575,42 @@ fig1 <- ggplot()+
   scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
 
 ggsave(file="figures/fig1.svg", plot=fig1, height=12, width=12, units="cm")
+
+##
+
+mean_subzerodays2005_2014 <- rast("derived_data/mean_subzerodays2005_2014.tif")
+mean_subzerodays2015_2024 <- rast("derived_data/mean_subzerodays2015_2024.tif")
+subzerodays_change_perc <- (mean_subzerodays2015_2024 - mean_subzerodays2005_2014)/mean_subzerodays2005_2014*100
+
+finland_reprojected = st_transform(finland, st_crs(mean_subzerodays2015_2024))
+
+subzerodays_change_perc_cropped = crop(subzerodays_change_perc, finland_reprojected)
+subzerodays_change_perc_final = mask(subzerodays_change_perc_cropped, finland_reprojected)
+plot(subzerodays_change_perc_final)
+
+fig2 <- ggplot()+
+  geom_spatraster(data=subzerodays_change_perc_final, aes(fill=sum))+
+  scale_fill_gradientn(colours = c("#560048","#b8179d","#f278de", "#f0f0f0","#4ecdc4"), 
+                       values = rescale(c(-37,-20,-10,0,6.51)),
+                       guide = "colorbar", limits=c(-37,6.51), na.value=NA)+
+  theme_bw()+
+  labs(fill = "Change (%) of mean yearly\nnumber of day with less\nthan 0°C between\n2005-2014 and 2015-2024")+
+  geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
+                                                                 "kilpisjarvi", "Levi", "Lammi", 
+                                                                 "Tvarminne")),
+             mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
+  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
+
+fig2bis <- ggplot()+
+  geom_spatraster(data=subzerodays_change_perc_final, aes(fill=sum))+
+  scale_fill_grass_b(palette = "sepia")+
+  theme_bw()+
+  labs(fill = "Change (%) of mean yearly\nnumber of day with less\nthan 0°C between\n2005-2014 and 2015-2024")+
+  geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
+                                                                 "kilpisjarvi", "Levi", "Lammi", 
+                                                                 "Tvarminne")),
+             mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
+  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
+
+ggsave(file="figures/fig2bis.svg", plot=fig2bis, height=12, width=12, units="cm")
 
