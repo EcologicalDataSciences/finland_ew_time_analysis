@@ -87,8 +87,7 @@ ggplot(finland) +
 #### ab change compard with richness change
 
 ab_vs_change <- ab_per_site %>% 
-  left_join(richness) %>% 
-  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) 
+  left_join(richness) 
 
 ggplot(ab_vs_change, aes(y=log(1+tot_ab), x=richness))+
   geom_point(aes(col=year))+
@@ -542,7 +541,7 @@ plot(subzerodays_change_final)
 # nice plots
 
 library(tidyterra)
-
+library(scales)
 
 
 # i have to merge my raster and name them so I can plot them with facet and have the same legend with same breaks
@@ -590,7 +589,7 @@ plot(subzerodays_change_perc_final)
 
 fig2 <- ggplot()+
   geom_spatraster(data=subzerodays_change_perc_final, aes(fill=sum))+
-  scale_fill_gradientn(colours = c("#560048","#b8179d","#f278de", "#f0f0f0","#4ecdc4"), 
+  scale_fill_gradientn(colours = c("#560048","#b8179d","#f278de", "#f0f0f0","#4DA739"), 
                        values = rescale(c(-37,-20,-10,0,6.51)),
                        guide = "colorbar", limits=c(-37,6.51), na.value=NA)+
   theme_bw()+
@@ -600,6 +599,9 @@ fig2 <- ggplot()+
                                                                  "Tvarminne")),
              mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
   scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
+
+ggsave(file="figures/fig2.svg", plot=fig2, height=12, width=12, units="cm")
+
 
 fig2bis <- ggplot()+
   geom_spatraster(data=subzerodays_change_perc_final, aes(fill=sum))+
@@ -613,4 +615,66 @@ fig2bis <- ggplot()+
   scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
 
 ggsave(file="figures/fig2bis.svg", plot=fig2bis, height=12, width=12, units="cm")
+
+sites_to_map$freeze_change <- extract(subzerodays_change_perc, sites_to_map[,c(4,3)])[[2]]
+
+
+
+par(mfrow = c(2, 2))
+
+mod1 <- lm(ab_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+summary(mod1)
+plot(mod1)
+
+mod2 <- lm(richness_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+summary(mod2)
+plot(mod2)
+
+mod3 <- lm(temp_beta  ~ freeze_change, data = sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)))
+summary(mod3)
+plot(mod3)
+
+par(mfrow = c(1, 1))
+
+
+library(modelsummary)
+
+modelsummary(list("Abundance change"=mod1,"Richness change"=mod2))
+modelsummary(list("Abundance change"=mod1,"Richness change"=mod2, "Turnover"=mod3))
+
+
+abun <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change), aes(x=freeze_change, y=ab_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in number of freezing days")+
+  ylab("Change in abundance")+
+  theme_bw()+
+  ggtitle("R2 = 0.149; p-value = 0.0835")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+
+rich <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change), aes(x=freeze_change, y=richness_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in number of freezing days")+
+  ylab("Change in richness")+
+  theme_bw()+
+  ggtitle("R2 = 0.000; p-value = 0.936")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+beta <- ggplot( sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)),
+                aes(x=freeze_change, y=temp_beta))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in number of freezing days")+
+  ylab("Turnover (Bray-Curtis)")+
+  theme_bw() +
+  ggtitle("R2 = 0.114; p-value = 0.158")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+richabun <- ggarrange(abun, rich, nrow=1, ncol=2, labels=c("A", "B"))
+richabunturn <- ggarrange(abun, rich, beta, nrow=1, ncol=3, labels=c("A", "B", "C"))
+
+ggsave(file="figures/fig4.svg", plot=richabun, height=8, width=16, units="cm")
+ggsave(file="figures/fig4bis.svg", plot=richabunturn, height=8, width=24, units="cm")
 

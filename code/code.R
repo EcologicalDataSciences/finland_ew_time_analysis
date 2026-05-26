@@ -306,10 +306,12 @@ taxon_dif <- data %>%
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
   filter(taxon!="Octolasion") %>% 
-  group_by(taxon,year) %>% 
+  group_by(site_name, taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
-  pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
-  summarise(diff=t1-t0)
+  ungroup() %>% group_by(year,taxon) %>% 
+  summarise(mean_obs_sp= mean(tot_obs_sp)) %>% 
+  pivot_wider(names_from = year, values_from = mean_obs_sp) %>% 
+  mutate(diff=t1-t0) %>% select(-t0, -t1)
 
 plot1 <- ggplot(taxon_dif,
   aes(x=diff, y=reorder(taxon, diff), fill=sign(diff)))+
@@ -347,16 +349,29 @@ ggarrange(plot1, plot2,
 
 require("ggrepel")
 
-ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
-  geom_hline(yintercept=0, alpha=0.3)+
-  geom_vline(xintercept=0, alpha=0.3)+
+appearance_disappearance$taxon <- gsub("Aporrectodea caliginosa", "Acali", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Aporrectodea rosea", "Arose", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Octolasion lacteum", "Olact", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Lumbricus rubellus", "Lrube", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Lumbricus castaneus", "Lcast", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Lumbricus terrestris", "Lterre", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Dendrobaena octaedra", "Docta", appearance_disappearance$taxon)
+appearance_disappearance$taxon <- gsub("Bimastos rubidus", "Brubi", appearance_disappearance$taxon)
+
+
+figXA <- ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
+  geom_hline(yintercept=0, alpha=0.1)+
+  geom_vline(xintercept=0, alpha=0.1)+
   geom_point(aes(col=taxon))+
   geom_text_repel(label=appearance_disappearance$taxon, aes(col=taxon))+
-  #  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
   theme_bw()+
-  xlab("Occurence change")+
-  ylab("Abundance change")+
-  theme(legend.position = "none")
+  xlab("Change in occurence")+
+  ylab("Change in mean abundance per site")+
+  theme(legend.position = "none")+
+  ggtitle("A: all individuals")
+
+ggsave(file="figures/figXA.svg", plot=figXA, height=8, width=8, units="cm")
+
 
 #### 2.4 Species abundance change - adult only ####
 
@@ -398,10 +413,12 @@ taxon_dif_ad <- data_adult_only %>%
   filter(taxon!="Undetermined") %>% 
   filter(taxon!="Lumbricus") %>% 
   filter(taxon!="Octolasion") %>% 
-  group_by(taxon,year) %>% 
+  group_by(site_name, taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
-  pivot_wider(names_from = year, values_from = tot_obs_sp, values_fill = 0) %>% 
-  summarise(diff=t1-t0)
+  ungroup() %>% group_by(year,taxon) %>% 
+  summarise(mean_obs_sp= mean(tot_obs_sp)) %>% 
+  pivot_wider(names_from = year, values_from = mean_obs_sp) %>% 
+  mutate(diff=t1-t0) %>% select(-t0, -t1)
 
 plot1ad <- ggplot(taxon_dif_ad,
                 aes(x=diff, y=reorder(taxon, diff), fill=sign(diff)))+
@@ -437,16 +454,35 @@ ggarrange(plot1ad, plot2ad,
 
 require("ggrepel")
 
-ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
-  geom_hline(yintercept=0, alpha=0.3)+
-  geom_vline(xintercept=0, alpha=0.3)+
+appearance_disappearance_ad$taxon <- gsub("Aporrectodea caliginosa", "Acali", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Aporrectodea rosea", "Arose", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Octolasion lacteum", "Olact", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Lumbricus rubellus", "Lrube", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Lumbricus castaneus", "Lcast", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Lumbricus terrestris", "Lterre", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Dendrobaena octaedra", "Docta", appearance_disappearance_ad$taxon)
+appearance_disappearance_ad$taxon <- gsub("Bimastos rubidus", "Brubi", appearance_disappearance_ad$taxon)
+
+
+figX <- ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
+  geom_hline(yintercept=0, alpha=0.1)+
+  geom_vline(xintercept=0, alpha=0.1)+
   geom_point(aes(col=taxon))+
   geom_text_repel(label=appearance_disappearance_ad$taxon, aes(col=taxon))+
 #  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
   theme_bw()+
-  xlab("Occurence change")+
-  ylab("Abundance change")+
-  theme(legend.position = "none")
+  xlab("Change in occurence")+
+  ylab("Change in mean abundance per site")+
+  theme(legend.position = "none")+
+  ggtitle("B: adults only")
+
+ggsave(file="figures/figX.svg", plot=figX, height=8, width=8, units="cm")
+
+
+figXB <- ggarrange(figXA, figX,ncol=2, nrow=1)
+
+ggsave(file="figures/figXB.svg", plot=figXB, height=8, width=16, units="cm")
+
 
 #### 2.5 Richness change ####
 
