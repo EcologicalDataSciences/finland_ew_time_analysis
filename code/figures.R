@@ -619,17 +619,21 @@ ggsave(file="figures/fig2bis.svg", plot=fig2bis, height=12, width=12, units="cm"
 sites_to_map$freeze_change <- extract(subzerodays_change_perc, sites_to_map[,c(4,3)])[[2]]
 
 
+library(DHARMa)
 
 par(mfrow = c(2, 2))
 
+# normal?
 mod1 <- lm(ab_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
 summary(mod1)
 plot(mod1)
 
-mod2 <- lm(richness_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+#check wich ione as normal but only integer
+mod2 <- lm(richness_change ~ freeze_change, family="gamma",  data = sites_to_map %>% left_join(ab_change_vs_richness_change))
 summary(mod2)
 plot(mod2)
 
+#binomial
 mod3 <- lm(temp_beta  ~ freeze_change, data = sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)))
 summary(mod3)
 plot(mod3)
