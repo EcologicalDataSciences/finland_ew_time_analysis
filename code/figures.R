@@ -3,12 +3,16 @@
 # Posted by L Tyrone, modified by community. See post 'Timeline' for change history
 # Retrieved 2026-05-18, License - CC BY-SA 4.0
 
+#### 1. Libraries ####
+
 library(sf)
 library(dplyr)
 library(rnaturalearth)
 #devtools::install_github("ropensci/rnaturalearthhires") # for precisversion of map
 library(ggplot2)
 library(tidyverse)
+
+#### 2. Mapping Finland and situation map ####
 
 # Define custom orthographic PROJ4 string
 # based on your example coordinates
@@ -84,7 +88,7 @@ ggplot(finland) +
   theme(axis.title.x = element_blank(), axis.title.y = element_blank())
 
 
-#### ab change compard with richness change
+#### 3. ab change compard with richness change ####
 
 ab_vs_change <- ab_per_site %>% 
   left_join(richness) 
@@ -107,7 +111,7 @@ ggplot(ab_change_vs_richness_change, aes(y=ab_change, x=richness_change))+
   ylab("Abundance change")
   
 
-##### Extracting climate data
+#### 4. Extracting climate data from CHELSA ####
 
 # first test for snow cover, but with chelsa we can only have the mean for 1971-2010 and 2011-2040
 
@@ -125,7 +129,7 @@ getChelsa(var="scd", # snow cover days
           ssp = "ssp126",
           forcing="MPI-ESM1-2-HR")
 
-# here I want to extract daily temperature data to know the nb of days with sub zero degreeper year
+# here I want to extract daily temperature data to know the nb of days with sub zero degree per year
 
 # - 1 extraction of daily temperature from chelsa for each year between 2005 and 2024
 # - 2 if less than zero celsius degree (273.15 K), cell=1, 0 otherwise
@@ -538,7 +542,7 @@ subzerodays_change_cropped = crop(subzerodays_change, finland_reprojected)
 subzerodays_change_final = mask(subzerodays_change_cropped, finland_reprojected)
 plot(subzerodays_change_final)
 
-# nice plots
+#### 4.2. nice plots ####
 
 library(tidyterra)
 library(scales)
@@ -618,6 +622,7 @@ ggsave(file="figures/fig2bis.svg", plot=fig2bis, height=12, width=12, units="cm"
 
 sites_to_map$freeze_change <- extract(subzerodays_change_perc, sites_to_map[,c(4,3)])[[2]]
 
+#### 5. Models ####
 
 library(DHARMa)
 
