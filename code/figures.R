@@ -78,14 +78,24 @@ sites_to_map <- sites_resampled2025 %>%
 world50 <- ne_countries( scale=50)
 
 
-ggplot(finland) + 
+fig00 <- ggplot(world50) + 
   # first plotting Finland
   geom_sf(color = "grey40", fill="white", size = 0.1, show.legend = FALSE) +
   xlim(c(19, 32)) +
   ylim(c(60, 70))+ 
   # then plotting sites
-  geom_point(data = sites_to_map, mapping = aes(x = Longitude, y = Latitude, col=region))+
-  theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+  geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
+                                                                 "kilpisjarvi", "Levi", "Lammi", 
+                                                                 "Tvarminne")),
+             mapping = aes(x = Longitude, y = Latitude, shape=region), size=2)+
+  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")+
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank())+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("")+
+  ylab("")
+
+ggsave(file="figures/fig00.svg", plot=fig00, height=8, width=8, units="cm")
 
 
 #### 3. ab change compard with richness change ####
@@ -626,29 +636,67 @@ sites_to_map$freeze_change <- extract(subzerodays_change_perc, sites_to_map[,c(4
 
 library(DHARMa)
 
-par(mfrow = c(2, 2))
+#### 5.1 Freezing days ####
+
+#### abundance
 
 # normal?
-mod1 <- lm(ab_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
-summary(mod1)
-plot(mod1)
+ggplot(ab_change_vs_richness_change, aes(x = ab_change)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "white") +
+  geom_density(lwd = 1, colour = 4,
+               fill = 4, alpha = 0.25)+
+  theme_bw()+
+  xlab("Change in abundance")
 
-#check wich ione as normal but only integer
-mod2 <- lm(richness_change ~ freeze_change, family="gamma",  data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+mod1 <- lm(ab_change ~ freeze_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+
+simulationOutput1 <- simulateResiduals(fittedModel = mod1, plot = FALSE)
+plot(simulationOutput1)
+
+summary(mod1)
+
+#### richness
+
+#check wich ione as normal but only integer: I think normal is fine
+ggplot(ab_change_vs_richness_change, aes(x = richness_change)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "white") +
+  geom_density(lwd = 1, colour = 4,
+               fill = 4, alpha = 0.25)+
+  theme_bw()+
+  xlab("Change in richness")
+
+mod2 <- lm(richness_change ~ freeze_change,  data = sites_to_map %>% left_join(ab_change_vs_richness_change))
+
+simulationOutput2 <- simulateResiduals(fittedModel = mod2, plot = FALSE)
+plot(simulationOutput2)
+
 summary(mod2)
-plot(mod2)
+
+#### turnover
 
 #binomial
-mod3 <- lm(temp_beta  ~ freeze_change, data = sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)))
+
+ggplot(temp_beta, aes(x = temp_beta)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "white") +
+  geom_density(lwd = 1, colour = 4,
+               fill = 4, alpha = 0.25)+
+  theme_bw()+
+  xlab("Turnover (Bray-Curtis)")
+
+mod3 <- glm(temp_beta  ~ freeze_change, family="binomial", data = sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)))
+
+simulationOutput3 <- simulateResiduals(fittedModel = mod3, plot = FALSE)
+plot(simulationOutput3)
+
 summary(mod3)
-plot(mod3)
 
-par(mfrow = c(1, 1))
-
+#### plots
 
 library(modelsummary)
 
-modelsummary(list("Abundance change"=mod1,"Richness change"=mod2))
 modelsummary(list("Abundance change"=mod1,"Richness change"=mod2, "Turnover"=mod3))
 
 
@@ -686,4 +734,156 @@ richabunturn <- ggarrange(abun, rich, beta, nrow=1, ncol=3, labels=c("A", "B", "
 
 ggsave(file="figures/fig4.svg", plot=richabun, height=8, width=16, units="cm")
 ggsave(file="figures/fig4bis.svg", plot=richabunturn, height=8, width=24, units="cm")
+
+#### 5.2 Mean snow depth ####
+
+#### abundance 
+
+mod4 <- lm(ab_change ~ snow_depth_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change) %>% left_join(snow_all_means))
+
+simulationOutput4 <- simulateResiduals(fittedModel = mod4, plot = FALSE)
+plot(simulationOutput4)
+
+summary(mod4)
+
+#### richness
+
+mod5 <- lm(richness_change ~ snow_depth_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change) %>% left_join(snow_all_means))
+
+simulationOutput5 <- simulateResiduals(fittedModel = mod5, plot = FALSE)
+plot(simulationOutput5)
+
+summary(mod5)
+
+#### turnover
+
+mod6 <- glm(temp_beta ~ snow_depth_change, family="binomial", data = sites_to_map %>%  left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)) %>% left_join(snow_all_means))
+
+simulationOutput6 <- simulateResiduals(fittedModel = mod6, plot = FALSE)
+plot(simulationOutput6)
+
+summary(mod6)
+
+#### plots
+
+abun2 <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change%>% left_join(snow_all_means)), aes(x=snow_depth_change, y=ab_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in mean snow cover")+
+  ylab("Change in abundance")+
+  theme_bw()+
+ # ggtitle("R2 = 0.149; p-value = 0.0835")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+
+rich2 <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change%>% left_join(snow_all_means)), aes(x=snow_depth_change, y=richness_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in mean snow cover")+
+  ylab("Change in richness")+
+  theme_bw()+
+ # ggtitle("R2 = 0.000; p-value = 0.936")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+beta2 <- ggplot( sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F))%>% left_join(snow_all_means),
+                aes(x=snow_depth_change, y=temp_beta))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in mean snow cover")+
+  ylab("Turnover (Bray-Curtis)")+
+  theme_bw() +
+ # ggtitle("R2 = 0.114; p-value = 0.158")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+richabunturn2 <- ggarrange(abun2, rich2, beta2, nrow=1, ncol=3, labels=c("A", "B", "C"))
+
+ggsave(file="figures/fig5bis.svg", plot=richabunturn2, height=8, width=24, units="cm")
+
+#### 5.3 Snow depth variability ####
+
+#### abundance 
+
+mod7 <- lm(ab_change ~ variability_snow_depth_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change) %>% left_join(snow_all_means))
+
+simulationOutput7 <- simulateResiduals(fittedModel = mod7, plot = FALSE)
+plot(simulationOutput7)
+
+summary(mod7)
+
+#### richness
+
+mod8 <- lm(richness_change ~ variability_snow_depth_change, data = sites_to_map %>% left_join(ab_change_vs_richness_change) %>% left_join(snow_all_means))
+
+simulationOutput8 <- simulateResiduals(fittedModel = mod8, plot = FALSE)
+plot(simulationOutput8)
+
+summary(mod8)
+
+#### turnover
+
+mod9 <- glm(temp_beta ~ variability_snow_depth_change, family="binomial", data = sites_to_map %>%  left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F)) %>% left_join(snow_all_means))
+
+simulationOutput9 <- simulateResiduals(fittedModel = mod9, plot = FALSE)
+plot(simulationOutput9)
+
+summary(mod9)
+
+
+#### plots
+
+abun3 <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change%>% left_join(snow_all_means)), aes(x=variability_snow_depth_change, y=ab_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in snow cover variability")+
+  ylab("Change in abundance")+
+  theme_bw()+
+  # ggtitle("R2 = 0.149; p-value = 0.0835")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+
+rich3 <- ggplot(sites_to_map %>% left_join(ab_change_vs_richness_change%>% left_join(snow_all_means)), aes(x=variability_snow_depth_change, y=richness_change))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in snow cover variability")+
+  ylab("Change in richness")+
+  theme_bw()+
+  # ggtitle("R2 = 0.000; p-value = 0.936")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+beta3 <- ggplot( sites_to_map %>% left_join(temp_beta %>%   separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F))%>% left_join(snow_all_means),
+                 aes(x=variability_snow_depth_change, y=temp_beta))+
+  geom_point()+
+  geom_smooth(method="lm", color="#CC9933", fill="#CC9933")+
+  xlab("Change in snow cover variability")+
+  ylab("Turnover (Bray-Curtis)")+
+  theme_bw() +
+  # ggtitle("R2 = 0.114; p-value = 0.158")+
+  theme(plot.title = element_text(size=10,hjust = 1))
+
+richabunturn3 <- ggarrange(abun3, rich3, beta3, nrow=1, ncol=3, labels=c("A", "B", "C"))
+
+ggsave(file="figures/fig6bis.svg", plot=richabunturn3, height=8, width=24, units="cm")
+
+####
+
+ggplot(snow_all_means, aes(x=variability_snow_depth_change, y=snow_depth_change))+
+  geom_point()
+
+ggplot(sites_to_map %>% left_join(snow_all_means), aes(x=freeze_change, y=snow_depth_change))+
+  geom_point()
+
+ggplot(sites_to_map %>% left_join(snow_all_means), aes(x=freeze_change, y=variability_snow_depth_change))+
+  geom_point()
+
+#### 6. Distance between sites ####
+
+mLevi <- terra::distance(sites_to_map[sites_to_map$region=="Levi", c("Longitude", "Latitude")], lonlat=TRUE)/1000
+mLammi <- terra::distance(sites_to_map[sites_to_map$region=="Lammi", c("Longitude", "Latitude")], lonlat=TRUE)/1000
+mTva <- terra::distance(sites_to_map[sites_to_map$region=="Tvarminne", c("Longitude", "Latitude")], lonlat=TRUE)/1000
+mKilp <- terra::distance(sites_to_map[sites_to_map$region=="kilpisjarvi", c("Longitude", "Latitude")], lonlat=TRUE)/1000
+
+mean(c(mLevi, mLammi, mTva, mKilp))
+min(c(mLevi, mLammi, mTva, mKilp))
+max(c(mLevi, mLammi, mTva, mKilp))
+sd(c(mLevi, mLammi, mTva, mKilp))
 

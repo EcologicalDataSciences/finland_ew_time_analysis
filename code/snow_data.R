@@ -168,6 +168,7 @@ snow_all_means <- snow_all %>%
   group_by(region, year_id) %>% 
   mutate(mean_snow_depth=mean(snow_depth),
          sd_snow_depth=sd(snow_depth)) %>% 
+  select(year_id, region, year, mean_snow_depth,sd_snow_depth ) %>% distinct() %>% 
   ungroup() %>% group_by(region, year) %>% 
   summarise(mean_mean_snow_depth=mean(mean_snow_depth), 
             mean_sd_snow_depth=mean(sd_snow_depth)) %>% 

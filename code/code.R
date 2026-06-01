@@ -365,7 +365,7 @@ figXA <- ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disap
   geom_point(aes(col=taxon))+
   geom_text_repel(label=appearance_disappearance$taxon, aes(col=taxon))+
   theme_bw()+
-  xlab("Change in occurence")+
+  xlab("Change in occupancy")+
   ylab("Change in mean abundance per site")+
   theme(legend.position = "none")+
   ggtitle("A: all individuals")
@@ -471,7 +471,7 @@ figX <- ggplot(appearance_disappearance_ad %>% mutate(change_occu=appearance-dis
   geom_text_repel(label=appearance_disappearance_ad$taxon, aes(col=taxon))+
 #  xlim(-2.5,2.5)+ylim(-1.5,1.5)+
   theme_bw()+
-  xlab("Change in occurence")+
+  xlab("Change in occupancy")+
   ylab("Change in mean abundance per site")+
   theme(legend.position = "none")+
   ggtitle("B: adults only")
