@@ -300,6 +300,29 @@ a <-tpaired.krandtest(mat2015, mat2025, nperm=999)
 a
 p.adjust(a$t.test$p.param, method="holm") # p values corrected for multiple testing
 
+# for TBI, I have to remove rows with only zero in both 2015 and 2025 for the function to work
+
+TBI(mat2015,mat2025) # rows 7 and 11 have only zeros in both matrices
+TBI <- TBI(mat2015[-c(7,11),], mat2025[-c(7,11),], nperm=999)$BCD.mat %>% 
+  select(-Change) %>% 
+  rename(TBI_loss='B/(2A+B+C)', 
+         TBI_gains='C/(2A+B+C)', 
+         TBI='D=(B+C)/(2A+B+C)') %>% 
+  pivot_longer(c(1:3))
+
+ggplot(TBI, aes(x=name, y=value))+
+  geom_boxplot()+
+  stat_summary(
+    geom = "point",
+    fun = "mean",
+    col = "black",
+    size = 3,
+    shape = 24,
+    fill = "red"
+  )
+
+
+
 # figure
 
 taxon_dif <- data %>% 
@@ -755,6 +778,39 @@ for (i in 1:nrow(temp_beta)){
   temp_beta[i, 4] <- temp_beta_i$beta.sim
   temp_beta[i, 5] <- temp_beta_i$beta.sne
 }
+
+# tbi
+# for TBI, I have to remove rows with only zero in both 2015 and 2025 for the function to work
+
+TBI(mat2015,mat2025) # rows 7 and 11 have only zeros in both matrices
+TBI <- TBI(mat2015[-c(7,11),], mat2025[-c(7,11),], nperm=999)$BCD.mat %>% 
+  select(-Change) %>% 
+  rename(TBI_loss='B/(2A+B+C)', 
+         TBI_gains='C/(2A+B+C)', 
+         TBI='D=(B+C)/(2A+B+C)')
+
+
+
+# for adults, too many zeros
+
+temp_beta_all <- TBI %>% mutate(site_name=temp_beta[-c(7,11),]$site_name) %>% # i remove rows 7 and 11 because these sites could not be used to calculate TBI
+  full_join(temp_beta) %>% 
+  pivot_longer(c(1:3,5:8))
+
+ggplotturnov <- ggplot(temp_beta_all %>% separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) %>% group_by(region, name) %>% mutate(mean=mean(value, na.rm=TRUE)),
+                       aes(x=name, y=value))+
+  geom_boxplot()+
+  stat_summary(fun="mean", shape=8, col="red")+
+  geom_point(data =temp_beta_all %>% separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) %>% group_by(region, name) %>% mutate(mean=mean(value, na.rm=TRUE)),
+             mapping=aes(x=name, y=mean, shape=region), size=3)+
+  scale_shape_manual(values = c(16, 15, 17, 3))+
+  ylab("")+
+  xlab("")+
+  scale_x_discrete(labels=c('TBI', 'TBI_gains', 'TBI_losses', 'Bray-Curtis', 'Turnover', 'Nestedness', 'Sorensen'))+
+  theme_bw()
+
+ggsave(file="figures/ggplotturnov.svg", plot=ggplotturnov, height=8, width=16, units="cm")
+
 
 #### 2.9 Climate change ####
 

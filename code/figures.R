@@ -572,7 +572,7 @@ fig0 <- ggplot()+
   theme_bw()+
   labs(fill = "Mean yearly number of day\nwith less than 0°C")
 
-ggsave(file="figures/fig0.svg", plot=fig0, height=24, width=24, units="cm")
+ggsave(file="figures/fig0.svg", plot=fig0, height=12, width=16, units="cm")
 
 
 
@@ -874,6 +874,14 @@ ggplot(sites_to_map %>% left_join(snow_all_means), aes(x=freeze_change, y=snow_d
 
 ggplot(sites_to_map %>% left_join(snow_all_means), aes(x=freeze_change, y=variability_snow_depth_change))+
   geom_point()
+
+
+### correlation betwen climate variables
+
+svg(filename="figures/correlationclimate.svg")
+dev.copy(device = svg, filename = "figures/correlationclimate.svg", width = 6, height = 6) 
+plot(sites_to_map %>% left_join(snow_all_means) %>% select(snow_depth_change, variability_snow_depth_change ,freeze_change))
+dev.off()
 
 #### 6. Distance between sites ####
 
