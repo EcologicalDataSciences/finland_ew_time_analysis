@@ -75,7 +75,7 @@ sites_to_map <- sites_resampled2025 %>%
   select(region, site, Latitude, Longitude) %>% 
   distinct()
 
-world50 <- ne_countries( scale=50)
+world50 <- ne_countries( scale="large")
 
 
 fig00 <- ggplot(world50) + 
@@ -602,6 +602,7 @@ subzerodays_change_perc_final = mask(subzerodays_change_perc_cropped, finland_re
 plot(subzerodays_change_perc_final)
 
 fig2 <- ggplot()+
+  geom_sf(data=world50, fill="lightgrey")+
   geom_spatraster(data=subzerodays_change_perc_final, aes(fill=sum))+
   scale_fill_gradientn(colours = c("#560048","#b8179d","#f278de", "#f0f0f0","#4DA739"), 
                        values = rescale(c(-37,-20,-10,0,6.51)),
@@ -612,8 +613,14 @@ fig2 <- ggplot()+
                                                                  "kilpisjarvi", "Levi", "Lammi", 
                                                                  "Tvarminne")),
              mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
-  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")
-
+  scale_shape_manual(name = "Region",
+                     labels = c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),
+                     values = c(16, 17, 15, 18))+
+  geom_sf(data=finland, fill=NA)+
+  xlim(18, 33)+
+  ylim(59, 71)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
 ggsave(file="figures/fig2.svg", plot=fig2, height=12, width=12, units="cm")
 
 
@@ -633,8 +640,6 @@ ggsave(file="figures/fig2bis.svg", plot=fig2bis, height=12, width=12, units="cm"
 sites_to_map$freeze_change <- extract(subzerodays_change_perc, sites_to_map[,c(4,3)])[[2]]
 
 #### 5. Models ####
-
-library(DHARMa)
 
 #### 5.1 Freezing days ####
 

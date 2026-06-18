@@ -302,25 +302,6 @@ p.adjust(a$t.test$p.param, method="holm") # p values corrected for multiple test
 
 # for TBI, I have to remove rows with only zero in both 2015 and 2025 for the function to work
 
-TBI(mat2015,mat2025) # rows 7 and 11 have only zeros in both matrices
-TBI <- TBI(mat2015[-c(7,11),], mat2025[-c(7,11),], nperm=999)$BCD.mat %>% 
-  select(-Change) %>% 
-  rename(TBI_loss='B/(2A+B+C)', 
-         TBI_gains='C/(2A+B+C)', 
-         TBI='D=(B+C)/(2A+B+C)') %>% 
-  pivot_longer(c(1:3))
-
-ggplot(TBI, aes(x=name, y=value))+
-  geom_boxplot()+
-  stat_summary(
-    geom = "point",
-    fun = "mean",
-    col = "black",
-    size = 3,
-    shape = 24,
-    fill = "red"
-  )
-
 
 
 # figure
@@ -332,6 +313,18 @@ taxon_dif <- data %>%
   group_by(site_name, taxon,year) %>% 
   summarise(tot_obs_sp= sum(tot_obs)) %>% 
   ungroup() %>% group_by(year,taxon) %>% 
+  summarise(mean_obs_sp= mean(tot_obs_sp)) %>% 
+  pivot_wider(names_from = year, values_from = mean_obs_sp) %>% 
+  mutate(diff=t1-t0) %>% select(-t0, -t1)
+
+taxon_dif_reg <- data %>% 
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion")  %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site")) %>% 
+  group_by(site, taxon,year, region) %>% 
+  summarise(tot_obs_sp= sum(tot_obs)) %>% 
+  ungroup() %>% group_by(year,taxon,region) %>% 
   summarise(mean_obs_sp= mean(tot_obs_sp)) %>% 
   pivot_wider(names_from = year, values_from = mean_obs_sp) %>% 
   mutate(diff=t1-t0) %>% select(-t0, -t1)
@@ -360,6 +353,31 @@ appearance_disappearance <- data %>%
             disappearance=sum(disappearance)) %>% 
   left_join(taxon_dif)
 
+appearance_disappearance_reg <- data %>%
+  filter(taxon!="Undetermined") %>% 
+  filter(taxon!="Lumbricus") %>% 
+  filter(taxon!="Octolasion") %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site")) %>% 
+  group_by(taxon,year, region, site) %>% 
+  summarise(tot_obs_sp= sum(tot_obs)) %>%  
+  mutate(occurence=ifelse(tot_obs_sp > 0, 1, 0))  %>% 
+  select(-tot_obs_sp)  %>% 
+  pivot_wider(names_from=year, values_from = occurence, values_fill = 0) %>% 
+  mutate(occ_change=t1-t0) %>% 
+  ungroup() %>% 
+  mutate(appearance=ifelse(occ_change==1, 1, 0)) %>% 
+  mutate(disappearance=ifelse(occ_change==-1, 1, 0))  %>% 
+  group_by(taxon, region) %>% 
+  mutate(sum_occ_both_year=t0+t1) %>% 
+  filter(sum_occ_both_year>0) %>% 
+  select(-sum_occ_both_year) %>% 
+  mutate(appearance=sum(appearance),
+            disappearance=sum(disappearance)) %>% 
+  left_join(taxon_dif_reg) %>% 
+  mutate(change_occu=appearance-disappearance) %>% 
+  select(taxon, region, diff, change_occu) %>% 
+  distinct()
+
 plot2 <- ggplot(appearance_disappearance)+
   geom_col(aes(x=appearance, y=reorder(taxon, diff)), fill="green")+
   geom_col(aes(x=-disappearance, y=taxon), fill="red")+
@@ -372,14 +390,7 @@ ggarrange(plot1, plot2,
 
 require("ggrepel")
 
-appearance_disappearance$taxon <- gsub("Aporrectodea caliginosa", "Acali", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Aporrectodea rosea", "Arose", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Octolasion lacteum", "Olact", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Lumbricus rubellus", "Lrube", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Lumbricus castaneus", "Lcast", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Lumbricus terrestris", "Lterre", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Dendrobaena octaedra", "Docta", appearance_disappearance$taxon)
-appearance_disappearance$taxon <- gsub("Bimastos rubidus", "Brubi", appearance_disappearance$taxon)
+
 
 
 figXA <- ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disappearance), aes(x=change_occu, y=diff))+
@@ -390,10 +401,41 @@ figXA <- ggplot(appearance_disappearance %>% mutate(change_occu=appearance-disap
   theme_bw()+
   xlab("Change in occupancy")+
   ylab("Change in mean abundance per site")+
-  theme(legend.position = "none")+
-  ggtitle("A: all individuals")
+  theme(legend.position = "none")
+
+appearance_disappearance_reg$taxon <- gsub("Aporrectodea caliginosa", "Acali", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Aporrectodea rosea", "Arose", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Octolasion lacteum", "Olact", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Lumbricus rubellus", "Lrube", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Lumbricus castaneus", "Lcast", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Lumbricus terrestris", "Lterre", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Dendrobaena octaedra", "Docta", appearance_disappearance_reg$taxon)
+appearance_disappearance_reg$taxon <- gsub("Bimastos rubidus", "Brubi", appearance_disappearance_reg$taxon)
+
+figXAb <- ggplot(appearance_disappearance_reg, aes(x=change_occu, y=diff))+
+  geom_hline(yintercept=0, alpha=0.1)+
+  geom_vline(xintercept=0, alpha=0.1)+
+  geom_point(aes(col=taxon))+
+  geom_text_repel(label=appearance_disappearance_reg$taxon, aes(col=taxon))+
+  facet_wrap(~factor(region, c("kilpisjarvi","Levi",  "Lammi", "Tvarminne"), labels = c("Kilpisjärvi","Levi", "Lammi","Tvärminne")))+
+  theme_bw()+
+  xlab("Change in occupancy")+
+  ylab("Change in mean abundance per site")+
+  theme(legend.position = "none")
+
+blank <- ggplot() + theme_void()
+
+FIGURE2 <- ggarrange(ggarrange(blank,figXA, blank,nrow=3,heights = c(0.5,3,0.5)),
+                     figXAb,
+                     ncol=2, 
+                     widths = c(1, 1.2),
+                     labels=c("A", "B"))
+
+
+
 
 ggsave(file="figures/figXA.svg", plot=figXA, height=8, width=8, units="cm")
+ggsave(file="figures/FIGURE2.svg", plot=FIGURE2, height=12, width=20, units="cm")
 
 
 #### 2.4 Species abundance change - adult only ####
@@ -782,10 +824,10 @@ for (i in 1:nrow(temp_beta)){
 # tbi
 # for TBI, I have to remove rows with only zero in both 2015 and 2025 for the function to work
 
-TBI(mat2015,mat2025) # rows 7 and 11 have only zeros in both matrices
+#TBI(mat2015,mat2025) # rows 7 and 11 have only zeros in both matrices
 TBI <- TBI(mat2015[-c(7,11),], mat2025[-c(7,11),], nperm=999)$BCD.mat %>% 
   select(-Change) %>% 
-  rename(TBI_loss='B/(2A+B+C)', 
+  rename(TBI_losses='B/(2A+B+C)', 
          TBI_gains='C/(2A+B+C)', 
          TBI='D=(B+C)/(2A+B+C)')
 
@@ -793,23 +835,33 @@ TBI <- TBI(mat2015[-c(7,11),], mat2025[-c(7,11),], nperm=999)$BCD.mat %>%
 
 # for adults, too many zeros
 
-temp_beta_all <- TBI %>% mutate(site_name=temp_beta[-c(7,11),]$site_name) %>% # i remove rows 7 and 11 because these sites could not be used to calculate TBI
-  full_join(temp_beta) %>% 
-  pivot_longer(c(1:3,5:8))
+temp_beta_all <- TBI %>% mutate(site_name=temp_beta[-c(7,11),]$site_name) %>% 
+ # i remove rows 7 and 11 because these sites could not be used to calculate TBI
+  pivot_longer(c(1:3)) %>% 
+  separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) %>% 
+  group_by(region, name) %>% mutate(mean=mean(value, na.rm=TRUE)) 
 
-ggplotturnov <- ggplot(temp_beta_all %>% separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) %>% group_by(region, name) %>% mutate(mean=mean(value, na.rm=TRUE)),
+ggplotturnov <- ggplot(temp_beta_all ,
                        aes(x=name, y=value))+
   geom_boxplot()+
-  stat_summary(fun="mean", shape=8, col="red")+
-  geom_point(data =temp_beta_all %>% separate_wider_delim(site_name, "_", names = c("region", "site"), cols_remove=F) %>% group_by(region, name) %>% mutate(mean=mean(value, na.rm=TRUE)),
-             mapping=aes(x=name, y=mean, shape=region), size=3)+
-  scale_shape_manual(values = c(16, 15, 17, 3))+
+  stat_summary(fun="mean", shape=8, col="black")+
+  geom_point(data =temp_beta_all %>% 
+               mutate(region = fct_relevel(region, "kilpisjarvi", "Levi", "Lammi", "Tvarminne")),
+             mapping=aes(x=name, y=mean, col=region, shape=region), size=3)+
+#  scale_shape_discrete(labels=c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),name="Region")+
+#  scale_colour_manual(values=c("blue", "green", "purple", "grey"))+
+  scale_colour_manual(name = "Region",
+                      labels = c("Lammi","Levi", "Tvärminne",  "Kilpisjärvi"),
+                      values = c("pink", "lightblue", "darkred", "blue")) +   
+  scale_shape_manual(name = "Region",
+                     labels = c("Lammi","Levi", "Tvärminne", "Kilpisjärvi"),
+                     values = c(15, 17, 18, 16))+
+  
   ylab("")+
   xlab("")+
-  scale_x_discrete(labels=c('TBI', 'TBI_gains', 'TBI_losses', 'Bray-Curtis', 'Turnover', 'Nestedness', 'Sorensen'))+
   theme_bw()
 
-ggsave(file="figures/ggplotturnov.svg", plot=ggplotturnov, height=8, width=16, units="cm")
+ggsave(file="figures/ggplotturnov.svg", plot=ggplotturnov, height=8, width=12, units="cm")
 
 
 #### 2.9 Climate change ####

@@ -77,9 +77,9 @@ for (i in 1:20){
 }
 
 kilpisjarvi_data <- st_drop_geometry(kilpisjarvi_data_init) %>%  
-  filter(variable=="snow"|variable=="tday") %>% 
+#  filter(variable=="snow"|variable=="tday") %>% 
   filter(!is.na(value)) %>% 
-  separate_wider_delim(time, "-", names = c("year", "month", "day")) %>%
+  separate_wider_delim(time, "-", names = c("year", "month", "day")) %>% 
   pivot_wider(names_from = variable, values_from = value) 
   
 completeness_kilpis <- kilpisjarvi_data %>% 
@@ -104,7 +104,7 @@ for (i in 1:20){
 }
 
 levi_data <- st_drop_geometry(levi_data_init) %>% 
-  filter(variable=="snow"|variable=="tday") %>% 
+#  filter(variable=="snow"|variable=="tday") %>% 
   filter(!is.na(value)) %>% 
   separate_wider_delim(time, "-", names = c("year", "month", "day")) %>%
   pivot_wider(names_from = variable, values_from = value)
@@ -131,7 +131,7 @@ for (i in 1:20){
 }
 
 lammi_data <- st_drop_geometry(lammi_data_init) %>% 
-  filter(variable=="snow"|variable=="tday") %>% 
+#  filter(variable=="snow"|variable=="tday") %>% 
   filter(!is.na(value)) %>% 
   separate_wider_delim(time, "-", names = c("year", "month", "day")) %>%
   pivot_wider(names_from = variable, values_from = value)
@@ -158,7 +158,7 @@ for (i in 1:20){
 }
 
 tvarminne_data <- st_drop_geometry(tvarminne_data_init) %>% 
-  filter(variable=="snow"|variable=="tday") %>% 
+#  filter(variable=="snow"|variable=="tday") %>% 
   filter(!is.na(value)) %>% 
   separate_wider_delim(time, "-", names = c("year", "month", "day")) %>%
   pivot_wider(names_from = variable, values_from = value)
@@ -171,33 +171,38 @@ completeness_tva <- tvarminne_data %>%
 
 #### 3. Merging everything ####
 
-snow_all <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi"),
+snow_all <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi") %>% select(-TG_PT12H_min),
                   levi_data %>% mutate(region="Levi"),
                   lammi_data %>% mutate(region="Lammi"),
-                  tvarminne_data %>% mutate(region="Tvarminne")) %>% 
-  select(-tday) %>% 
+                  tvarminne_data %>% mutate(region="Tvarminne"))  %>% 
   rename(snow_depth=snow) %>% 
   rename(year_id=year) %>% 
   mutate(year_id=as.numeric(year_id)) %>% 
   mutate(year=ifelse(year_id>=2005 & year_id<=2014, "t0", "t1")) %>% 
   distinct() 
   
-snow_all$snow_depth <- gsub("-1", "0", snow_all$snow_depth )
+snow_all$snow_depth <- gsub("-1", "0", snow_all$snow_depth)
+snow_all$rrday <- gsub("-1", "0", snow_all$rrday)
 
 snow_all_means <- snow_all %>% 
   mutate(snow_depth=as.numeric(snow_depth)) %>% 
+  mutate(rrday=as.numeric(rrday)) %>% 
   group_by(region, year_id) %>% 
   mutate(mean_snow_depth=mean(snow_depth, na.rm=TRUE),
-         sd_snow_depth=sd(snow_depth, na.rm=TRUE)) %>% 
-  select(year_id, region, year, mean_snow_depth,sd_snow_depth ) %>% distinct() %>% 
+         mean_tday=mean(tday, na.rm=TRUE),
+         mean_tmin=mean(tmin, na.rm=TRUE),
+         mean_tmax=mean(tmax, na.rm=TRUE), 
+         mean_rrday=mean(rrday, na.rm=TRUE)) %>% 
+  select(year_id, region, year, mean_snow_depth,mean_tday, mean_tmin, mean_tmax, mean_rrday) %>% distinct() %>% 
   ungroup() %>% group_by(region, year) %>% 
   summarise(mean_mean_snow_depth=mean(mean_snow_depth), 
-            mean_sd_snow_depth=mean(sd_snow_depth)) %>% 
-  pivot_wider(names_from = year, values_from = c(mean_mean_snow_depth,mean_sd_snow_depth)) %>% 
-  mutate(snow_depth_change=(mean_mean_snow_depth_t1-mean_mean_snow_depth_t0)/mean_mean_snow_depth_t0*100)%>% 
-  mutate(variability_snow_depth_change=(mean_sd_snow_depth_t1-mean_sd_snow_depth_t0)/mean_sd_snow_depth_t0*100)
+            mean_mean_tday=mean(mean_tday), 
+            mean_mean_tmin=mean(mean_tmin),
+            mean_mean_tmax=mean(mean_tmax), 
+            mean_mean_rrday=mean(mean_rrday)) %>% 
+  pivot_wider(names_from = year, values_from = c(mean_mean_snow_depth, mean_mean_tday, mean_mean_tmin, mean_mean_tmax, mean_mean_rrday)) 
 
-freezing_days_FMI <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi"),
+freezing_days_FMI <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi")%>% select(-TG_PT12H_min),
                            levi_data %>% mutate(region="Levi"),
                            lammi_data %>% mutate(region="Lammi"),
                            tvarminne_data %>% mutate(region="Tvarminne")) %>% 
@@ -216,7 +221,24 @@ freezing_days_FMI <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi"),
   pivot_wider(names_from = year, values_from =mean_freeze) %>% 
   mutate(freeze_change=(t1-t0)/t0*100)
   
-  
+snow_days_FMI <- rbind(kilpisjarvi_data %>% mutate(region="kilpisjarvi")%>% select(-TG_PT12H_min),
+                           levi_data %>% mutate(region="Levi"),
+                           lammi_data %>% mutate(region="Lammi"),
+                           tvarminne_data %>% mutate(region="Tvarminne")) %>% 
+  select(-tday, -tmin, -tmax, -rrday) %>% 
+  rename(year_id=year) %>% 
+  mutate(year_id=as.numeric(year_id)) %>% 
+  mutate(year=ifelse(year_id>=2005 & year_id<=2014, "t0", "t1")) %>% 
+  distinct() %>% 
+  mutate(snowday=ifelse(snow<=0, 0,1)) %>% 
+  ungroup() %>% group_by(year_id, region) %>% 
+  mutate(nb_snow_days=sum(snowday))  %>% 
+  select(year, region, nb_snow_days) %>% distinct() %>% 
+  group_by(year, region) %>%
+  mutate(mean_snowdays=mean(nb_snow_days, na.rm=TRUE)) %>% 
+  select(year, region, mean_snowdays) %>%  distinct() %>% 
+  pivot_wider(names_from = year, values_from =mean_snowdays) %>% 
+  mutate(snowdays_change=(t1-t0)/t0*100)
 
 # snow_all_means can be used now in models
   
