@@ -69,18 +69,18 @@
 <circle cx='155.92' cy='66.07' r='1.95' style='stroke-width: 0.71; stroke: #00A9FF; fill: #00A9FF;' />
 <circle cx='155.92' cy='69.32' r='1.95' style='stroke-width: 0.71; stroke: #C77CFF; fill: #C77CFF;' />
 <circle cx='42.23' cy='62.82' r='1.95' style='stroke-width: 0.71; stroke: #FF61CC; fill: #FF61CC;' />
-<line x1='200.85' y1='34.97' x2='212.01' y2='46.86' style='stroke-width: 1.07; stroke: #7CAE00;' />
-<line x1='143.80' y1='50.07' x2='155.16' y2='62.02' style='stroke-width: 1.07; stroke: #00BFC4;' />
-<line x1='161.60' y1='59.91' x2='156.67' y2='65.26' style='stroke-width: 1.07; stroke: #00A9FF;' />
-<line x1='161.74' y1='76.65' x2='156.61' y2='70.18' style='stroke-width: 1.07; stroke: #C77CFF;' />
-<text x='96.52' y='33.15' text-anchor='middle' style='font-size: 11.04px;fill: #F8766D; font-family: "Arial";' textLength='118.42px' lengthAdjust='spacingAndGlyphs'>Aporrectodea caliginosa</text>
-<text x='148.06' y='16.98' text-anchor='middle' style='font-size: 11.04px;fill: #CD9600; font-family: "Arial";' textLength='96.94px' lengthAdjust='spacingAndGlyphs'>Aporrectodea rosea</text>
+<line x1='200.86' y1='34.97' x2='212.04' y2='46.88' style='stroke-width: 1.07; stroke: #7CAE00;' />
+<line x1='143.80' y1='50.07' x2='155.19' y2='62.05' style='stroke-width: 1.07; stroke: #00BFC4;' />
+<line x1='161.60' y1='59.91' x2='156.64' y2='65.28' style='stroke-width: 1.07; stroke: #00A9FF;' />
+<line x1='161.81' y1='76.69' x2='156.59' y2='70.15' style='stroke-width: 1.07; stroke: #C77CFF;' />
+<text x='96.52' y='33.16' text-anchor='middle' style='font-size: 11.04px;fill: #F8766D; font-family: "Arial";' textLength='118.42px' lengthAdjust='spacingAndGlyphs'>Aporrectodea caliginosa</text>
+<text x='147.99' y='16.98' text-anchor='middle' style='font-size: 11.04px;fill: #CD9600; font-family: "Arial";' textLength='96.94px' lengthAdjust='spacingAndGlyphs'>Aporrectodea rosea</text>
 <text x='175.37' y='33.17' text-anchor='middle' style='font-size: 11.04px;fill: #7CAE00; font-family: "Arial";' textLength='84.64px' lengthAdjust='spacingAndGlyphs'>Bimastos rubidus</text>
 <text x='151.81' y='190.22' text-anchor='middle' style='font-size: 11.04px;fill: #00BE67; font-family: "Arial";' textLength='112.92px' lengthAdjust='spacingAndGlyphs'>Dendrobaena octaedra</text>
-<text x='112.68' y='48.27' text-anchor='middle' style='font-size: 11.04px;fill: #00BFC4; font-family: "Arial";' textLength='104.28px' lengthAdjust='spacingAndGlyphs'>Lumbricus castaneus</text>
+<text x='112.75' y='48.27' text-anchor='middle' style='font-size: 11.04px;fill: #00BFC4; font-family: "Arial";' textLength='104.28px' lengthAdjust='spacingAndGlyphs'>Lumbricus castaneus</text>
 <text x='171.38' y='58.11' text-anchor='middle' style='font-size: 11.04px;fill: #00A9FF; font-family: "Arial";' textLength='92.62px' lengthAdjust='spacingAndGlyphs'>Lumbricus rubellus</text>
-<text x='165.64' y='86.35' text-anchor='middle' style='font-size: 11.04px;fill: #C77CFF; font-family: "Arial";' textLength='96.88px' lengthAdjust='spacingAndGlyphs'>Lumbricus terrestris</text>
-<text x='88.48' y='71.26' text-anchor='middle' style='font-size: 11.04px;fill: #FF61CC; font-family: "Arial";' textLength='93.84px' lengthAdjust='spacingAndGlyphs'>Octolasion lacteum</text>
+<text x='165.87' y='86.39' text-anchor='middle' style='font-size: 11.04px;fill: #C77CFF; font-family: "Arial";' textLength='96.88px' lengthAdjust='spacingAndGlyphs'>Lumbricus terrestris</text>
+<text x='88.43' y='71.29' text-anchor='middle' style='font-size: 11.04px;fill: #FF61CC; font-family: "Arial";' textLength='93.84px' lengthAdjust='spacingAndGlyphs'>Octolasion lacteum</text>
 <rect x='33.71' y='5.48' width='187.58' height='189.40' style='stroke-width: 1.07; stroke: #333333;' />
 </g>
 <g clip-path='url(#cpMC4wMHw0NTMuNTR8MC4wMHwyMjYuNzc=)'>
@@ -147,14 +147,14 @@
 <circle cx='358.02' cy='112.97' r='1.95' style='stroke-width: 0.71; stroke: #00A9FF; fill: #00A9FF;' />
 <circle cx='398.95' cy='124.68' r='1.95' style='stroke-width: 0.71; stroke: #C77CFF; fill: #C77CFF;' />
 <circle cx='317.10' cy='97.37' r='1.95' style='stroke-width: 0.71; stroke: #FF61CC; fill: #FF61CC;' />
-<text x='308.04' y='80.98' text-anchor='middle' style='font-size: 11.04px;fill: #F8766D; font-family: "Arial";' textLength='23.92px' lengthAdjust='spacingAndGlyphs'>Acali</text>
-<text x='377.19' y='34.76' text-anchor='middle' style='font-size: 11.04px;fill: #CD9600; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Arose</text>
-<text x='430.79' y='84.86' text-anchor='middle' style='font-size: 11.04px;fill: #7CAE00; font-family: "Arial";' textLength='25.77px' lengthAdjust='spacingAndGlyphs'>Brubi</text>
-<text x='295.27' y='190.95' text-anchor='middle' style='font-size: 11.04px;fill: #00BE67; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Docta</text>
-<text x='381.84' y='105.99' text-anchor='middle' style='font-size: 11.04px;fill: #00BFC4; font-family: "Arial";' textLength='26.38px' lengthAdjust='spacingAndGlyphs'>Lcast</text>
-<text x='348.96' y='125.56' text-anchor='middle' style='font-size: 11.04px;fill: #00A9FF; font-family: "Arial";' textLength='28.23px' lengthAdjust='spacingAndGlyphs'>Lrube</text>
-<text x='416.63' y='119.98' text-anchor='middle' style='font-size: 11.04px;fill: #C77CFF; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Lterre</text>
-<text x='308.02' y='109.96' text-anchor='middle' style='font-size: 11.04px;fill: #FF61CC; font-family: "Arial";' textLength='25.75px' lengthAdjust='spacingAndGlyphs'>Olact</text>
+<text x='326.15' y='81.00' text-anchor='middle' style='font-size: 11.04px;fill: #F8766D; font-family: "Arial";' textLength='23.92px' lengthAdjust='spacingAndGlyphs'>Acali</text>
+<text x='377.12' y='34.76' text-anchor='middle' style='font-size: 11.04px;fill: #CD9600; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Arose</text>
+<text x='430.81' y='84.89' text-anchor='middle' style='font-size: 11.04px;fill: #7CAE00; font-family: "Arial";' textLength='25.77px' lengthAdjust='spacingAndGlyphs'>Brubi</text>
+<text x='295.27' y='191.11' text-anchor='middle' style='font-size: 11.04px;fill: #00BE67; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Docta</text>
+<text x='381.37' y='105.75' text-anchor='middle' style='font-size: 11.04px;fill: #00BFC4; font-family: "Arial";' textLength='26.38px' lengthAdjust='spacingAndGlyphs'>Lcast</text>
+<text x='348.93' y='125.57' text-anchor='middle' style='font-size: 11.04px;fill: #00A9FF; font-family: "Arial";' textLength='28.23px' lengthAdjust='spacingAndGlyphs'>Lrube</text>
+<text x='416.14' y='120.00' text-anchor='middle' style='font-size: 11.04px;fill: #C77CFF; font-family: "Arial";' textLength='28.83px' lengthAdjust='spacingAndGlyphs'>Lterre</text>
+<text x='308.03' y='109.95' text-anchor='middle' style='font-size: 11.04px;fill: #FF61CC; font-family: "Arial";' textLength='25.75px' lengthAdjust='spacingAndGlyphs'>Olact</text>
 <rect x='267.99' y='23.27' width='180.08' height='171.62' style='stroke-width: 1.07; stroke: #333333;' />
 </g>
 <g clip-path='url(#cpMC4wMHw0NTMuNTR8MC4wMHwyMjYuNzc=)'>

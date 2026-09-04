@@ -977,6 +977,66 @@ FIGURES2 <- ggarrange(FIGURES2a, FIGURES2b,
 
 #ggsave(file="figures/Figure_S2.svg", plot=FIGURES2, height=8, width=20, units="cm")
 
+#### 3. Forest management ####
+
+# extracted from https://doi.org/10.34894/HQIJN5
+
+management <- rast("data/Forest_management_map_raster.tif")
+
+finland_reprojected2 = st_transform(finland, st_crs(management))
+management_cropped = crop(management, finland_reprojected2)
+management_final = mask(management_cropped, finland_reprojected2)
+
+plot(management_final)
+
+ggplot()+
+  geom_spatraster(data=management_final)
+
+##### *Figure S3* ####
+
+management_cat <- management_final
+
+management_cat$Forest_management_map_raster <-
+  terra::as.factor(
+    management_cat$Forest_management_map_raster
+  )
+
+cols <-  c("1" = "#185300","2" = "#add272","3" = "#4051bd","4" = "#efdc52","5" = "#b30101")
+labels_management <- c(
+  "1" = "Unmanaged forest",
+  "2" = "Close-to-nature forestry",
+  "3" = "Combined objective forestry",
+  "4" = "Intensive forestry",
+  "5" = "Very intensive forestry"
+)
+
+FIGURES3 <- ggplot() +
+  geom_sf(data = world50, fill = "lightgrey") +
+  
+  geom_spatraster(data = management_cat) +
+  scale_fill_manual(
+    name = "Forest management intensity",
+    values = cols,
+    labels = labels_management,
+    na.value = NA,
+    na.translate = FALSE
+  ) +
+  theme_bw()+
+  labs(fill = "Forest management intensity")+
+  geom_point(data = sites_to_map %>% mutate(region = fct_relevel(region, 
+                                                                 "kilpisjarvi", "Levi", "Lammi", 
+                                                                 "Tvarminne")),
+             mapping = aes(x = Longitude, y = Latitude, shape=region), size=3)+
+  scale_shape_manual(name = "Region",
+                     labels = c("Kilpisjärvi","Levi", "Lammi", "Tvärminne"),
+                     values = c(16, 17, 15, 18))+
+  geom_sf(data=finland, fill=NA)+
+  xlim(18, 33)+
+  ylim(59, 71)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#ggsave(file="figures/Figure_S3.svg", plot=FIGURES3, height=12, width=12, units="cm")
+
 
 #### 3. Species abundance change ####
 
