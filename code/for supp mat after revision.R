@@ -1,4 +1,3 @@
-### weather check ###
 
 library(tidyverse)
 library(fmi2) # for extraction of fmi data
@@ -6,7 +5,7 @@ library(DT) #usefull ? (extraction of fmi data?)
 library(sf)
 library(ggpubr) # for combining figures
 
-# 0: Extraction
+#### Extraction ####
 
 start <- c("2005-01-02",
            "2006-01-01",
@@ -140,7 +139,7 @@ tvarminne_data <- st_drop_geometry(tvarminne_data_init) %>%
   separate_wider_delim(time, "-", names = c("year", "month", "day")) %>%
   pivot_wider(names_from = variable, values_from = value)
 
-#### 2.2.2. Merging everything ####
+#### Merging everything ####
 
 # (it is called "snow" but has all climate data)
 
@@ -160,86 +159,7 @@ snow_all$snow_depth <- gsub("-1", "0", snow_all$snow_depth)
 snow_all$rrday <- gsub("-1", "0", snow_all$rrday)
 
 
-# 1: how winter weather changed in 10 years
-
-winter_means <- snow_all %>% 
-  filter(month=="01"|month=="02"|month=="03") %>% 
-  filter(year_id!="2025") %>% 
-  filter(year_id!="2026") %>% 
-  mutate(snow_depth=as.numeric(snow_depth)) %>% 
-  mutate(rrday=as.numeric(rrday)) %>% 
-  group_by(region, year_id) %>% 
-  mutate(mean_snow_depth=mean(snow_depth, na.rm=TUE),
-         mean_tday=mean(tday, na.rm=TRUE), 
-         sum_rrday=sum(rrday, na.rm=TRUE)) %>% 
-  select(year_id, region, year, mean_tday, sum_rrday) %>% distinct() %>% 
-  ungroup() %>% group_by(region, year) %>% 
-  summarise(mean_mean_tday=mean(mean_tday),
-            mean_sum_rrday=mean(sum_rrday)) %>% 
-  pivot_wider(names_from = year, values_from = c(mean_mean_tday, mean_sum_rrday)) 
-
-
-# 2: how spring weather changed in 10 years
-
-spring_means <- snow_all %>% 
-  filter(month=="04"|month=="05"|month=="06") %>% 
-  filter(year_id!="2025") %>% 
-  filter(year_id!="2026") %>% 
-  mutate(snow_depth=as.numeric(snow_depth)) %>% 
-  mutate(rrday=as.numeric(rrday)) %>% 
-  group_by(region, year_id) %>% 
-  mutate(mean_tday=mean(tday, na.rm=TRUE), 
-         sum_rrday=sum(rrday, na.rm=TRUE)) %>% 
-  select(year_id, region, year, mean_tday, sum_rrday) %>% distinct() %>% 
-  ungroup() %>% group_by(region, year) %>% 
-  summarise(mean_mean_tday=mean(mean_tday),
-            mean_sum_rrday=mean(sum_rrday)) %>% 
-  pivot_wider(names_from = year, values_from = c(mean_mean_tday, mean_sum_rrday)) 
-
-
-# 3: What was the year winter weather and how different was it from the norm
-
-winter_sample <- snow_all %>% 
-  filter(month=="01"|month=="02"|month=="03") %>% 
-  filter(year_id=="2015"|year_id=="2025"|year_id=="2026") %>% 
-  mutate(snow_depth=as.numeric(snow_depth)) %>% 
-  mutate(rrday=as.numeric(rrday)) %>% 
-  group_by(region, year_id) %>% 
-  mutate(mean_tday=mean(tday, na.rm=TRUE), 
-         sum_rrday=sum(rrday, na.rm=TRUE)) %>% 
-  select(year_id, region, mean_tday, sum_rrday) %>% distinct() %>% 
-  ungroup() %>% group_by(region, year_id) %>% 
-  summarise(mean_mean_tday=mean(mean_tday),
-            mean_sum_rrday=mean(sum_rrday)) %>% 
-  pivot_wider(names_from = year_id, values_from = c(mean_mean_tday, mean_sum_rrday)) 
-
-# conclu:
-# in winter...
-# 2015 and 2025 winter were hoter than typical, 2026 was colder than typical
-# 2015 was quite rainy compared to typical, 2025 was somehow normal, 2026 was way drier
-
-# 4: What was the year spring weather and how different was it from the norm
-
-spring_sample <- snow_all %>% 
-  filter(month=="04"|month=="05"|month=="06") %>% 
-  filter(year_id=="2015"|year_id=="2025"|year_id=="2026") %>% 
-  mutate(snow_depth=as.numeric(snow_depth)) %>% 
-  mutate(rrday=as.numeric(rrday)) %>% 
-  group_by(region, year_id) %>% 
-  mutate(mean_tday=mean(tday, na.rm=TRUE), 
-         sum_rrday=sum(rrday, na.rm=TRUE)) %>% 
-  select(year_id, region, mean_tday, sum_rrday) %>% distinct() %>% 
-  ungroup() %>% group_by(region, year_id) %>% 
-  summarise(mean_mean_tday=mean(mean_tday),
-            mean_sum_rrday=mean(sum_rrday)) %>% 
-  pivot_wider(names_from = year_id, values_from = c(mean_mean_tday, mean_sum_rrday)) |> 
-  mutate(across(region, ~factor(., levels=c("Kilpisjärvi","Levi","Lammi", "Tvärminne"))))
-
-# in spring...
-# 2015, 2025 and 2026 wer cold ! Maybe 2026 a little less cold
-# 2015 was ok in precipitation, 2025 and 2026 were way drier
-
-#### graph ####
+#### Figure ####
 
 snow_all_monthly_mean <- snow_all %>% 
   group_by(year_id, month, year, region) %>% 
@@ -330,18 +250,15 @@ snow <- ggplot() +
 
 
 # all
+
+##### *Figure S4* ####
+
 FIGURES4 <- ggarrange(temp, prec, snow, 
                       ncol=1)
 
 ggsave(file="figures/Figure_S4.svg", plot=FIGURES4, height=24, width=24, units="cm")
 
-## conclu winter et spring temp augmente, winter surtout
-## precipitations d'hiver augmente pas mal, mais precipitation de printemps diminuent un peu 
-
-## 2015 : hiver + chaud, printemps un peu + froid par rapport au normal (10 dernieres annees), annee pluvieuse hiver comme printemps... plutot propice aux vdt ?
-## 2025 : hiver + chaud, printemps un peu + froid par rapport au normal (10 dernieres annees)
-## 2026 : hiver plus froid !! au printemps + chaud; hiver moins pluvieu (car neige a la place?), et printemps plus pluvieux au nord mais plus sec au sud... notamment tvarminne
-
+#### Small finland for Fig 3
 
 finland_small <- ne_countries(country="finland", scale="small", type="sovereignty")
 
